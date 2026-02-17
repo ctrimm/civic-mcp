@@ -1,0 +1,93 @@
+{
+  "name": "civic-mcp",
+  "version": "0.1.0",
+  "description": "WebMCP abstraction layer for government websites — install adapters for any state or federal service and let AI agents navigate forms, check eligibility, and submit applications on behalf of citizens.",
+  "author": "Nava PBC <hello@navapbc.com>",
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://civic-mcp.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/civic-mcp/civic-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/civic-mcp/civic-mcp/issues"
+  },
+  "keywords": [
+    "webmcp",
+    "mcp",
+    "model-context-protocol",
+    "government",
+    "civic-tech",
+    "benefits",
+    "snap",
+    "medicaid",
+    "ai-agents",
+    "browser-extension",
+    "chrome-extension",
+    "open-source",
+    "accessibility",
+    "public-interest"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "adapters/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "eslint packages/ adapters/ --ext .js,.ts",
+    "lint:fix": "eslint packages/ adapters/ --ext .js,.ts --fix",
+    "format": "prettier --write packages/ adapters/",
+    "validate:adapters": "node packages/cli/bin/civic-mcp validate adapters/",
+    "dev": "npm run dev -w packages/extension",
+    "build:extension": "npm run build -w packages/extension",
+    "build:cli": "npm run build -w packages/cli",
+    "registry:update": "node scripts/update-registry.js",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.2.0"
+  },
+  "lint-staged": {
+    "*.{js,ts}": ["eslint --fix", "prettier --write"],
+    "adapters/*/manifest.json": ["node scripts/validate-manifest.js"]
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "printWidth": 100,
+    "tabWidth": 2
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": ["eslint:recommended", "prettier"],
+    "env": {
+      "browser": true,
+      "node": true,
+      "es2022": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 2022,
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-eval": "error",
+      "no-implied-eval": "error",
+      "no-new-func": "error"
+    }
+  }
+}
