@@ -1,0 +1,94 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+*.crx
+*.pem
+
+# Extension packaging
+packages/extension/dist/
+packages/extension/*.zip
+
+# CLI builds
+packages/cli/dist/
+
+# SDK builds
+packages/sdk/dist/
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+secrets/
+
+# OS artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V3
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Package manager lockfiles (use npm workspaces, commit package-lock.json at root)
+yarn.lock
+pnpm-lock.yaml
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Adapter development artifacts
+adapters/**/node_modules/
+adapters/**/dist/
+adapters/**/.civic-mcp-dev/
+
+# Registry build artifacts
+registry/dist/
+registry/cache/
+
+# Documentation build
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+docs/node_modules/
+
+# Benchmark results
+benchmarks/results/
+
+# Chrome extension development
+.chrome-extension-id
+chrome-profile/
