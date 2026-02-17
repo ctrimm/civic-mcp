@@ -1,0 +1,107 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-02-17T00:00:00Z",
+  "plugins": [
+    {
+      "id": "gov.colorado.peak",
+      "name": "Colorado PEAK Benefits",
+      "description": "WebMCP tools for Colorado SNAP, Medicaid, and Colorado Works applications via peak.my.site.com",
+      "latestVersion": "0.1.0",
+      "category": "state_benefits",
+      "tags": ["SNAP", "Medicaid", "Colorado Works", "CHP+", "Colorado"],
+      "trustLevel": "verified",
+      "verified": true,
+      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.colorado.peak-0.1.0/plugin.zip",
+      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.colorado.peak/manifest.json",
+      "updatedAt": "2026-02-17T00:00:00Z",
+      "installs": 0,
+      "rating": 0,
+      "state": "CO"
+    },
+    {
+      "id": "gov.california.getcalfresh",
+      "name": "California GetCalFresh",
+      "description": "WebMCP tools for California CalFresh (SNAP) eligibility screening and application via GetCalFresh",
+      "latestVersion": "0.1.0",
+      "category": "state_benefits",
+      "tags": ["CalFresh", "SNAP", "Food Assistance", "California"],
+      "trustLevel": "verified",
+      "verified": true,
+      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.california.getcalfresh-0.1.0/plugin.zip",
+      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.california.getcalfresh/manifest.json",
+      "updatedAt": "2026-02-17T00:00:00Z",
+      "installs": 0,
+      "rating": 0,
+      "state": "CA"
+    },
+    {
+      "id": "gov.michigan.bridges",
+      "name": "Michigan MI Bridges",
+      "description": "WebMCP tools for Michigan SNAP, Medicaid, and Cash Assistance applications via MI Bridges",
+      "latestVersion": "0.1.0",
+      "category": "state_benefits",
+      "tags": ["SNAP", "Medicaid", "Cash Assistance", "Michigan"],
+      "trustLevel": "community",
+      "verified": false,
+      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.michigan.bridges-0.1.0/plugin.zip",
+      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.michigan.bridges/manifest.json",
+      "updatedAt": "2026-02-17T00:00:00Z",
+      "installs": 0,
+      "rating": 0,
+      "state": "MI"
+    },
+    {
+      "id": "gov.texas.yourtexasbenefits",
+      "name": "Texas YourTexasBenefits",
+      "description": "WebMCP tools for Texas SNAP, TANF, Medicaid, and CHIP applications via YourTexasBenefits",
+      "latestVersion": "0.1.0",
+      "category": "state_benefits",
+      "tags": ["SNAP", "TANF", "Medicaid", "CHIP", "Texas"],
+      "trustLevel": "community",
+      "verified": false,
+      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.texas.yourtexasbenefits-0.1.0/plugin.zip",
+      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.texas.yourtexasbenefits/manifest.json",
+      "updatedAt": "2026-02-17T00:00:00Z",
+      "installs": 0,
+      "rating": 0,
+      "state": "TX"
+    }
+  ],
+  "categories": [
+    {
+      "id": "state_benefits",
+      "name": "State Benefits Programs",
+      "count": 4
+    },
+    {
+      "id": "federal",
+      "name": "Federal Services",
+      "count": 0
+    },
+    {
+      "id": "local_government",
+      "name": "Local Government",
+      "count": 0
+    },
+    {
+      "id": "healthcare",
+      "name": "Healthcare",
+      "count": 0
+    },
+    {
+      "id": "housing",
+      "name": "Housing",
+      "count": 0
+    },
+    {
+      "id": "employment",
+      "name": "Employment",
+      "count": 0
+    },
+    {
+      "id": "education",
+      "name": "Education",
+      "count": 0
+    }
+  ]
+}

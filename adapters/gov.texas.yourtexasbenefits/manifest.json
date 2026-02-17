@@ -1,0 +1,41 @@
+{
+  "id": "gov.texas.yourtexasbenefits",
+  "name": "Texas YourTexasBenefits",
+  "version": "0.1.0",
+  "author": "Community Contributor",
+  "description": "WebMCP tools for Texas SNAP, TANF, Medicaid, and CHIP applications via YourTexasBenefits",
+  "homepage": "https://www.yourtexasbenefits.com",
+  "repository": "https://github.com/civic-mcp/civic-mcp",
+  "license": "MIT",
+  "domains": [
+    "www.yourtexasbenefits.com",
+    "yourtexasbenefits.com",
+    "hhs.texas.gov"
+  ],
+  "tools": [
+    {
+      "name": "check_eligibility",
+      "securityLevel": "read_only",
+      "category": "eligibility"
+    },
+    {
+      "name": "start_application",
+      "securityLevel": "write",
+      "category": "application"
+    },
+    {
+      "name": "get_benefit_status",
+      "securityLevel": "read_only",
+      "category": "status"
+    }
+  ],
+  "permissions": {
+    "required": ["read:forms", "write:forms", "navigate"],
+    "optional": ["storage:local", "notifications"]
+  },
+  "trustLevel": "community",
+  "verified": false,
+  "category": "state_benefits",
+  "tags": ["SNAP", "TANF", "Medicaid", "CHIP", "Texas"],
+  "state": "TX"
+}

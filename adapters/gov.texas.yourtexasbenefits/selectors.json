@@ -1,0 +1,42 @@
+{
+  "_note": "Selectors for yourtexasbenefits.com (React SPA). Last verified 2026-02-17. Add 500ms sleep after navigation for React hydration.",
+  "screener": {
+    "form": "form, .screener-form, [class*='screener'], [data-testid*='screener']",
+    "screenerLink": "a[href*='prescreener'], a[href*='Screener'], a[href*='qualify']",
+    "householdSize": "input[name='householdSize'], input[id*='household'], input[placeholder*='household']",
+    "monthlyIncome": "input[name='monthlyIncome'], input[id*='income'], input[placeholder*='income']",
+    "county": "select[name='county'], select[id*='county']",
+    "hasChildren": "input[name='hasChildren'], input[value='children']",
+    "hasPregnant": "input[name='hasPregnant'], input[value='pregnant']",
+    "hasDisability": "input[name='hasDisability'], input[value='disability']",
+    "submit": "button[type='submit'], input[type='submit'], .submit-btn",
+    "results": ".results, [class*='results'], [data-testid*='result']",
+    "snapResult": "[data-program='SNAP'] .result, .snap-result, [class*='snap'][class*='result']",
+    "medicaidResult": "[data-program='Medicaid'] .result, .medicaid-result",
+    "tanfResult": "[data-program='TANF'] .result, .tanf-result",
+    "chipResult": "[data-program='CHIP'] .result, .chip-result",
+    "overallMessage": ".results-summary, [class*='summary']"
+  },
+  "application": {
+    "form": "form, [class*='application']",
+    "loginIndicator": "[class*='login'], #loginForm, .login-container",
+    "firstName": "input[name='firstName'], input[id*='first']",
+    "lastName": "input[name='lastName'], input[id*='last']",
+    "dateOfBirth": "input[name='dob'], input[id*='dob'], input[name='dateOfBirth']",
+    "ssn4": "input[name='ssn4'], input[id*='ssn']",
+    "street": "input[name='street'], input[id*='street']",
+    "city": "input[name='city'], input[id*='city']",
+    "zip": "input[name='zip'], input[id*='zip']",
+    "submit": "button[type='submit'], .submit-btn",
+    "confirmation": ".confirmation, [class*='confirmation'], [data-testid*='confirm']",
+    "applicationId": ".application-number, [class*='app-number'], [data-testid*='app-id']"
+  },
+  "status": {
+    "list": ".benefits-list, [class*='benefits'], [data-testid*='benefits']",
+    "loginIndicator": "[class*='login'], #loginForm",
+    "snapStatus": "[data-program='SNAP'] .status, .snap-status",
+    "medicaidStatus": "[data-program='Medicaid'] .status",
+    "tanfStatus": "[data-program='TANF'] .status",
+    "renewalDate": ".renewal-date, [class*='renewal']"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "_note": "Selectors for getcalfresh.org. Last verified 2026-02-17.",
+  "screener": {
+    "form": "form, #eligibility-form, [data-testid='eligibility-form']",
+    "zipCode": "input[name='zip_code'], input[name='zip'], input#zip-code, input[placeholder*='ZIP']",
+    "householdSize": "input[name='household_size'], input#household-size, select[name='household_size']",
+    "monthlyIncome": "input[name='monthly_income'], input[name='income'], input#monthly-income",
+    "hasElderly": "input[name='has_elderly'], input[name='disability'], input[value='elderly']",
+    "submit": "button[type='submit'], button.submit-btn, input[type='submit']",
+    "results": ".results, #results, [data-testid='results'], .eligibility-result",
+    "eligible": ".eligible, [data-testid='eligible'], .result-status, .eligibility-status",
+    "benefitAmount": ".benefit-amount, [data-testid='benefit-amount'], .monthly-benefit",
+    "message": ".result-message, [data-testid='message'], .explanation"
+  },
+  "application": {
+    "form": "form, [data-testid='application-form']",
+    "firstName": "input[name='first_name'], input#first-name, input[placeholder*='First']",
+    "lastName": "input[name='last_name'], input#last-name, input[placeholder*='Last']",
+    "phone": "input[name='phone_number'], input#phone, input[type='tel']",
+    "email": "input[name='email'], input#email, input[type='email']",
+    "language": "select[name='preferred_language'], select#language",
+    "street": "input[name='street_address'], input#street, input[placeholder*='Street']",
+    "city": "input[name='city'], input#city",
+    "zip": "input[name='zip_code'], input#zip, input[name='zip']",
+    "submit": "button[type='submit'], .submit-btn, input[type='submit']",
+    "confirmation": ".confirmation, #confirmation, [data-testid='confirmation'], .application-started",
+    "applicationId": ".application-id, [data-testid='app-id'], .confirmation-code"
+  }
+}
