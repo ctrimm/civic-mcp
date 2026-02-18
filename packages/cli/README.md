@@ -8,11 +8,22 @@ Command-line tool for creating, developing, testing, validating, and publishing 
 pnpm add -g @civic-mcp/cli
 ```
 
-Or run directly from the monorepo (from the repo root):
+### Running from the monorepo (development)
+
+Build first, then use one of these from the repo root:
 
 ```bash
-pnpm build:cli             # compile once
-node packages/cli/dist/index.js --help
+pnpm build:cli                          # compile sdk + cli
+
+pnpm exec civic-mcp create              # via pnpm (recommended)
+node packages/cli/bin/civic-mcp.js create  # via node directly
+```
+
+To get `civic-mcp` as a bare shell command without publishing to npm:
+
+```bash
+pnpm install -g packages/cli            # run once from repo root
+# re-run after any pnpm build:cli
 ```
 
 ## Commands
