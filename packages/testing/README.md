@@ -58,6 +58,29 @@ expect(result).toBeToolError('CODE')      // result.success === false, matches c
 expect(result).toHaveToolData({ key })    // result.data contains key
 ```
 
+### `HumanRequiredError`
+
+Thrown by `waitForHuman()` when the harness runs in headless mode (the default). Catch it in tests that exercise tools with CAPTCHA or other human steps so those tests skip gracefully in CI rather than failing:
+
+```ts
+import { HumanRequiredError } from '@civic-mcp/testing';
+
+it('starts retirement application', async () => {
+  try {
+    const result = await harness.testTool('start_retirement_application', params);
+    expect(result.success).toBe(true);
+  } catch (err) {
+    if (err instanceof HumanRequiredError) {
+      console.log('Skipped: human required —', err.humanPrompt);
+      return; // pass
+    }
+    throw err; // unexpected — fail
+  }
+});
+```
+
+In headed mode (`CIVIC_MCP_HEADED=1`) `waitForHuman()` instead prints the prompt to the terminal and waits for Enter — no error is thrown.
+
 ### Fixtures
 
 ```ts

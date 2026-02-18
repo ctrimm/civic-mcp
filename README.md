@@ -65,7 +65,27 @@ civic-mcp install gov.federal.ssa
 
 ### Connect to an AI Agent
 
-Wire up any MCP-compatible client (Claude Desktop, Cursor, custom agents) via the Chrome DevTools bridge:
+There are two ways to wire civic-mcp into a MCP-compatible client (Claude Desktop, Cursor, etc.):
+
+**Option A — Standalone MCP server** (recommended, no extension needed)
+
+Add to `~/.claude/claude_desktop_config.json` (or your client's MCP config):
+
+```json
+{
+  "mcpServers": {
+    "civic-mcp": {
+      "command": "npx",
+      "args": ["tsx", "/path/to/civic-mcp/packages/mcp-server/src/index.ts"],
+      "env": { "CIVIC_MCP_HEADED": "1" }
+    }
+  }
+}
+```
+
+The server scans the `adapters/` directory on startup, registers every tool, and drives a Playwright browser in the background. Set `CIVIC_MCP_HEADED=1` for tools that require a visible browser (e.g. solving a CAPTCHA with `waitForHuman()`).
+
+**Option B — Chrome extension + DevTools bridge** (browser-context tools)
 
 ```json
 {
@@ -78,7 +98,7 @@ Wire up any MCP-compatible client (Claude Desktop, Cursor, custom agents) via th
 }
 ```
 
-Then open Colorado PEAK in Chrome and ask Claude:
+Install the extension, open the target site in Chrome, then ask Claude:
 
 > *"Check if a household of 3 with $2,400/month income is eligible for SNAP and Medicaid in Colorado."*
 
@@ -99,7 +119,7 @@ Then open Colorado PEAK in Chrome and ask Claude:
 
 | Adapter | Agency | Services | Status |
 |---------|--------|----------|--------|
-| [`gov.federal.ssa`](adapters/gov.federal.ssa) | Social Security Administration | Benefits, Disability, Medicare | 🚧 Planned |
+| [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Retirement benefit estimates, application start | ✅ Verified |
 | [`gov.federal.va`](adapters/gov.federal.va) | Dept. of Veterans Affairs | Benefits, Healthcare | 🚧 Planned |
 | [`gov.federal.benefits`](adapters/gov.federal.benefits) | Benefits.gov | Multi-program screener | 🚧 Planned |
 
@@ -119,12 +139,16 @@ civic-mcp/
 │   │   │   ├── ui/         # Popup, marketplace, settings
 │   │   │   └── background/ # Service worker
 │   │   └── manifest.json
+│   ├── mcp-server/         # Standalone MCP server — exposes all adapters to
+│   │                       #   Claude Desktop, Cursor, and any MCP client
+│   │                       #   over stdio JSON-RPC (no extension required)
 │   ├── cli/                # civic-mcp CLI for adapter development
 │   ├── sdk/                # Adapter development SDK + types
 │   └── testing/            # Test harness for adapter authors
 ├── adapters/               # Community-contributed site adapters
 │   ├── gov.colorado.peak/
 │   ├── gov.california.getcalfresh/
+│   ├── gov.ssa.retirement/
 │   └── .../
 ├── registry/               # Adapter registry metadata
 │   ├── registry.json       # Master adapter list
@@ -315,10 +339,11 @@ AGPL closes that door. Individual users and government agencies using the extens
 |-----------|--------|--------|
 | Core extension + plugin loader | Q1 2026 | 🔄 In Progress |
 | CLI tooling + adapter SDK | Q1 2026 | 🔄 In Progress |
+| Standalone MCP server bridge | Q1 2026 | 🔄 In Progress |
 | 5 verified adapters | Q2 2026 | 🚧 Planned |
 | Chrome Web Store launch | Q2 2026 | 🚧 Planned |
 | 25 state adapters | Q3 2026 | 🚧 Planned |
-| Federal agency adapters | Q4 2026 | 🚧 Planned |
+| Federal agency adapters | Q3 2026 | 🔄 In Progress |
 | Adapter certification program | Q4 2026 | 🚧 Planned |
 
 ---

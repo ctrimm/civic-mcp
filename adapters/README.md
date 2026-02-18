@@ -21,6 +21,7 @@ adapters/
 |----|------|-------|----------|
 | `gov.colorado.peak` | peak.my.site.com | ✅ Verified | SNAP, Medicaid, Colorado Works, CHP+ |
 | `gov.california.getcalfresh` | getcalfresh.org | ✅ Verified | CalFresh / SNAP |
+| `gov.ssa.retirement` | ssa.gov · secure.ssa.gov | ✅ Verified | Retirement benefit estimate, application start |
 | `gov.michigan.bridges` | newmibridges.michigan.gov | 🌐 Community | SNAP, Medicaid, Cash Assistance |
 | `gov.texas.yourtexasbenefits` | yourtexasbenefits.com | 🌐 Community | SNAP, TANF, Medicaid, CHIP |
 
