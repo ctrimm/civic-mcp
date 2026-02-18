@@ -13,7 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@civic-mcp/sdk": "*",
+    "@civic-mcp/sdk": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

@@ -21,7 +21,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@civic-mcp/sdk": "*",
+    "@civic-mcp/sdk": "workspace:*",
     "@playwright/test": "^1.40.0",
     "playwright": "^1.40.0"
   },

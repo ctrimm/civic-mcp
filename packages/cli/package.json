@@ -17,7 +17,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@civic-mcp/sdk": "*",
+    "@civic-mcp/sdk": "workspace:*",
     "chalk": "^5.3.0",
     "commander": "^12.0.0",
     "ora": "^8.0.0",
