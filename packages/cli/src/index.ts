@@ -11,6 +11,7 @@ import { testCommand } from './commands/test.js';
 import { linkCommand } from './commands/link.js';
 import { publishCommand } from './commands/publish.js';
 import { installCommand } from './commands/install.js';
+import { launchCommand } from './commands/launch.js';
 
 const program = new Command();
 
@@ -32,5 +33,6 @@ program.addCommand(testCommand());
 program.addCommand(linkCommand());
 program.addCommand(publishCommand());
 program.addCommand(installCommand());
+program.addCommand(launchCommand());
 
 program.parse(process.argv);
