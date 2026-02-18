@@ -21,8 +21,21 @@ export const LABEL = chalk.bgCyan.black(' civic-mcp ');
 
 /** Print the CLI banner. Called once at the start of interactive commands. */
 export function banner(): void {
+  const art = [
+    ' ██████╗██╗██╗   ██╗██╗ ██████╗   ███╗   ███╗ ██████╗██████╗ ',
+    '██╔════╝██║╚██╗ ██╔╝██║██╔════╝   ████╗ ████║██╔════╝██╔══██╗',
+    '██║     ██║ ╚████╔╝ ██║██║        ██╔████╔██║██║     ██████╔╝',
+    '██║     ██║  ╚██╔╝  ██║██║        ██║╚██╔╝██║██║     ██╔═══╝ ',
+    '╚██████╗██║   ██║   ██║╚██████╗   ██║ ╚═╝ ██║╚██████╗██║     ',
+    ' ╚═════╝╚═╝   ╚═╝   ╚═╝ ╚═════╝   ╚═╝     ╚═╝ ╚═════╝╚═╝     ',
+  ]
+    .map((l) => chalk.cyan(`  ${l}`))
+    .join('\n');
+
   console.log('');
-  console.log(`  ${LABEL}  ${chalk.dim('adapter toolkit')}`);
+  console.log(art);
+  console.log('');
+  console.log(`  ${chalk.dim('adapter toolkit · v0.1.0')}`);
   console.log('');
 }
 
