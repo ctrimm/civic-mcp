@@ -11,6 +11,7 @@ import path from 'node:path';
 import chalk from 'chalk';
 import ora from 'ora';
 import { validateManifest } from '@civic-mcp/sdk';
+import type { AdapterManifest } from '@civic-mcp/sdk';
 import { section, success, error, fatal, SYMBOLS } from '../ui.js';
 
 const DISALLOWED_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
@@ -126,6 +127,28 @@ export function validateCommand(): Command {
             }
             hasErrors = true;
           }
+        }
+      }
+
+      // ── human-in-the-loop permission declaration ──────────────────────────
+      const jsAdapterFiles = adapterFiles.filter((f) => f.endsWith('.ts') || f.endsWith('.js'));
+      const usesWaitForHuman = jsAdapterFiles.some((f) =>
+        fs.readFileSync(path.join(dir, f), 'utf8').includes('waitForHuman('),
+      );
+      if (usesWaitForHuman) {
+        const m = manifest as AdapterManifest;
+        const declared =
+          m.permissions?.required?.includes('human-in-the-loop') ||
+          m.permissions?.optional?.includes('human-in-the-loop');
+        const permSpinner = ora({ text: 'Checking human-in-the-loop permission', color: 'cyan' }).start();
+        if (!declared) {
+          permSpinner.warn(
+            chalk.yellow(
+              'Adapter calls waitForHuman() but "human-in-the-loop" is not declared in permissions',
+            ),
+          );
+        } else {
+          permSpinner.succeed(chalk.green('"human-in-the-loop" permission declared'));
         }
       }
 

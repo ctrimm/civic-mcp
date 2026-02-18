@@ -1,8 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api } from '../lib/messages.js';
 import { TrustBadge } from '../components/TrustBadge.js';
 import type { InstalledPlugin } from '../../core/registry-client.js';
+
+// ---------------------------------------------------------------------------
+// Human-in-the-loop types
+// ---------------------------------------------------------------------------
+
+const HUMAN_REQUIRED_KEY = 'civic-mcp:human-required';
+
+interface HumanRequest {
+  requestId: string;
+  prompt: string;
+  status: 'pending' | 'completed';
+  timestamp: number;
+}
 
 // ---------------------------------------------------------------------------
 // Root
@@ -12,6 +25,7 @@ function Popup() {
   const [plugins, setPlugins] = useState<InstalledPlugin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [humanRequest, setHumanRequest] = useState<HumanRequest | null>(null);
 
   async function load() {
     try {
@@ -27,6 +41,33 @@ function Popup() {
 
   useEffect(() => { void load(); }, []);
 
+  // Detect pending human-in-the-loop requests via chrome.storage
+  useEffect(() => {
+    async function checkPending() {
+      const result = await chrome.storage.local.get(HUMAN_REQUIRED_KEY);
+      const req = result[HUMAN_REQUIRED_KEY] as HumanRequest | undefined;
+      if (req && req.status === 'pending') setHumanRequest(req);
+    }
+    void checkPending();
+
+    function onStorageChanged(changes: Record<string, chrome.storage.StorageChange>) {
+      const change = changes[HUMAN_REQUIRED_KEY];
+      if (!change) return;
+      const next = change.newValue as HumanRequest | undefined;
+      setHumanRequest(next && next.status === 'pending' ? next : null);
+    }
+    chrome.storage.onChanged.addListener(onStorageChanged);
+    return () => chrome.storage.onChanged.removeListener(onStorageChanged);
+  }, []);
+
+  const markHumanDone = useCallback(async () => {
+    if (!humanRequest) return;
+    await chrome.storage.local.set({
+      [HUMAN_REQUIRED_KEY]: { ...humanRequest, status: 'completed' },
+    });
+    setHumanRequest(null);
+  }, [humanRequest]);
+
   async function toggleEnabled(id: string, enabled: boolean) {
     await api.setEnabled(id, enabled);
     setPlugins((prev) => prev.map((p) => (p.id === id ? { ...p, enabled } : p)));
@@ -38,7 +79,8 @@ function Popup() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+      {humanRequest && <HumanRequiredOverlay prompt={humanRequest.prompt} onDone={() => void markHumanDone()} />}
       <Header />
       <main style={{ flex: 1, padding: '8px 0' }}>
         {loading && <LoadingState />}
@@ -79,6 +121,56 @@ function Popup() {
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
+
+function HumanRequiredOverlay({ prompt, onDone }: { prompt: string; onDone: () => void }) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 100,
+        background: 'rgba(0,0,0,0.65)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+    >
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 8,
+          padding: '16px',
+          width: '100%',
+          boxShadow: '0 8px 24px rgba(0,0,0,.25)',
+        }}
+      >
+        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: '#1d4ed8' }}>
+          Action required
+        </div>
+        <div style={{ fontSize: 13, color: '#374151', marginBottom: 14, lineHeight: 1.5 }}>
+          {prompt}
+        </div>
+        <button
+          onClick={onDone}
+          style={{
+            width: '100%',
+            padding: '8px 0',
+            background: '#16a34a',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: 13,
+          }}
+        >
+          Done — continue
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Header() {
   return (

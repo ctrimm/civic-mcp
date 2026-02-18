@@ -17,6 +17,7 @@ import type {
   FillOptions,
   SelectOptions,
   ClickOptions,
+  WaitForHumanOptions,
 } from '@civic-mcp/sdk';
 import { isUrlAllowed, pluginStorageKey, jsonByteSize, sanitizeFieldValue, MAX_STORAGE_BYTES } from '@civic-mcp/sdk';
 import type { AdapterModule } from '@civic-mcp/sdk';
@@ -140,6 +141,33 @@ function createPageAPI(manifest: AdapterManifest): PageAPI {
 
     currentUrl(): string {
       return window.location.href;
+    },
+
+    async waitForHuman(opts: WaitForHumanOptions = {}): Promise<void> {
+      const requestId = crypto.randomUUID();
+      const prompt = opts.prompt ?? 'Manual step required';
+      const timeout = opts.timeout ?? 5 * 60 * 1_000; // 5 minutes
+      const storageKey = 'civic-mcp:human-required';
+
+      // Signal the popup by writing a pending request to shared storage
+      await chrome.storage.local.set({
+        [storageKey]: { requestId, prompt, status: 'pending', timestamp: Date.now() },
+      });
+
+      // Poll until the popup marks it completed (or we time out)
+      const deadline = Date.now() + timeout;
+      while (Date.now() < deadline) {
+        await sleep(500);
+        const result = await chrome.storage.local.get(storageKey);
+        const req = result[storageKey] as { requestId: string; status: string } | undefined;
+        if (!req || req.requestId !== requestId || req.status === 'completed') {
+          await chrome.storage.local.remove(storageKey);
+          return;
+        }
+      }
+
+      await chrome.storage.local.remove(storageKey);
+      throw new Error(`waitForHuman timed out after ${timeout / 1_000}s — "${prompt}"`);
     },
   };
 }

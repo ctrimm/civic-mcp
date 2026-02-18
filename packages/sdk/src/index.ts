@@ -1,6 +1,6 @@
 // Types
 export type { TrustLevel, PermissionId, ToolSummary, AdapterPermissions, AdapterManifest, AdapterStatistics, AdapterSignature } from './types/manifest.js';
-export type { SandboxContext, PageAPI, StorageAPI, NotifyAPI, UtilsAPI, NavigateOptions, WaitForOptions, FillOptions, SelectOptions, ClickOptions } from './types/sandbox.js';
+export type { SandboxContext, PageAPI, StorageAPI, NotifyAPI, UtilsAPI, NavigateOptions, WaitForOptions, FillOptions, SelectOptions, ClickOptions, WaitForHumanOptions } from './types/sandbox.js';
 export type { AdapterModule, AdapterTool, AdapterTool as Tool, ToolInputSchema, ToolResult, ToolSuccess, ToolError, JSONSchemaProperty, JSONSchemaType } from './types/adapter.js';
 export type { DeclarativeTool, DeclarativeAdapterConfig, NavigationDef, InputDef, OutputDef, SubmitDef, InputType, OutputType, SelectOption } from './types/declarative.js';
 export type { RegistryEntry, RegistryIndex, VerifiedPublisher, VerifiedRegistry, CategoryMeta, PluginCategory } from './types/registry.js';

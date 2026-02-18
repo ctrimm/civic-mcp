@@ -40,6 +40,13 @@ export interface ClickOptions {
   timeout?: number;
 }
 
+export interface WaitForHumanOptions {
+  /** Human-readable instruction shown in the extension popup (default: 'Manual step required') */
+  prompt?: string;
+  /** Maximum milliseconds to wait before timing out (default: 300_000 = 5 minutes) */
+  timeout?: number;
+}
+
 export interface PageAPI {
   /** Navigate to a URL. Must be within the adapter's declared domains. */
   navigate(url: string, options?: NavigateOptions): Promise<void>;
@@ -70,6 +77,18 @@ export interface PageAPI {
 
   /** Return the current page URL. */
   currentUrl(): string;
+
+  /**
+   * Suspend adapter execution and prompt the user to complete a manual step
+   * (e.g. solve a CAPTCHA, answer a security question, or handle 2FA).
+   *
+   * In the extension the popup surfaces `options.prompt` and waits for the
+   * user to click "Done" before the adapter continues. In the test harness
+   * the prompt is printed to the terminal and execution waits for Enter; in
+   * headless CI a {@link HumanRequiredError} is thrown so the test is marked
+   * skipped rather than failed.
+   */
+  waitForHuman(options?: WaitForHumanOptions): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------

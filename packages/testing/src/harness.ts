@@ -22,9 +22,40 @@ import type {
   FillOptions,
   SelectOptions,
   ClickOptions,
+  WaitForHumanOptions,
 } from '@civic-mcp/sdk';
 import { isUrlAllowed } from '@civic-mcp/sdk';
 import type { AdapterManifest } from '@civic-mcp/sdk';
+
+// ---------------------------------------------------------------------------
+// HumanRequiredError — thrown in headless mode when waitForHuman is called
+// ---------------------------------------------------------------------------
+
+/**
+ * Thrown by the test harness when `context.page.waitForHuman()` is called in
+ * headless mode. Catch this in your test to skip rather than fail:
+ *
+ * @example
+ * import { HumanRequiredError } from '@civic-mcp/testing';
+ *
+ * test('...', async () => {
+ *   try {
+ *     await harness.testTool('apply', params);
+ *   } catch (err) {
+ *     if (err instanceof HumanRequiredError) return; // skip
+ *     throw err;
+ *   }
+ * });
+ */
+export class HumanRequiredError extends Error {
+  constructor(public readonly humanPrompt: string) {
+    super(
+      `waitForHuman() called in headless mode — human interaction required: "${humanPrompt}". ` +
+        `Run with headed=true or CIVIC_MCP_HEADED=1 to handle this step manually.`,
+    );
+    this.name = 'HumanRequiredError';
+  }
+}
 
 export interface HarnessOptions {
   /** Absolute path to the adapter.ts / adapter.js file */
@@ -116,7 +147,8 @@ export function createHarness(options: HarnessOptions): AdapterTestHarness {
     playwrightPage = await browserContext.newPage();
 
     // Build the sandbox context backed by Playwright
-    context = buildSandboxContext(playwrightPage, manifest, options.timeout ?? 15_000);
+    const isHeaded = options.headed ?? process.env['CIVIC_MCP_HEADED'] === '1';
+    context = buildSandboxContext(playwrightPage, manifest, options.timeout ?? 15_000, isHeaded);
 
     // Run adapter init if present
     if (adapter.init) {
@@ -162,6 +194,7 @@ function buildSandboxContext(
   pw: Page,
   manifest: AdapterManifest,
   defaultTimeout: number,
+  isHeaded: boolean,
 ): SandboxContext {
   const storage = new Map<string, unknown>();
 
@@ -228,6 +261,24 @@ function buildSandboxContext(
 
     currentUrl(): string {
       return pw.url();
+    },
+
+    async waitForHuman(opts: WaitForHumanOptions = {}): Promise<void> {
+      const prompt = opts.prompt ?? 'Manual step required — complete the action in the browser window';
+
+      if (!isHeaded) {
+        throw new HumanRequiredError(prompt);
+      }
+
+      // In headed mode: print the prompt and wait for the operator to press Enter
+      const { createInterface } = await import('node:readline');
+      const rl = createInterface({ input: process.stdin, output: process.stdout });
+      await new Promise<void>((resolve) => {
+        rl.question(`\n[civic-mcp] Human step required: ${prompt}\nPress Enter when done... `, () => {
+          rl.close();
+          resolve();
+        });
+      });
     },
   };
 

@@ -10,7 +10,8 @@ export type PermissionId =
   | 'write:forms'
   | 'storage:local'
   | 'notifications'
-  | 'navigate';
+  | 'navigate'
+  | 'human-in-the-loop';
 
 export interface ToolSummary {
   /** Matches the `name` field in the full ToolDefinition */

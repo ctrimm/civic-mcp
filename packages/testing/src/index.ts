@@ -1,4 +1,4 @@
-export { createHarness } from './harness.js';
+export { createHarness, HumanRequiredError } from './harness.js';
 export type { HarnessOptions, AdapterTestHarness } from './harness.js';
 
 export { matchers } from './assertions.js';
