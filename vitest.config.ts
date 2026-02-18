@@ -8,8 +8,17 @@
  */
 
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'node:path';
 
 export default defineConfig({
+  resolve: {
+    // Point workspace packages at their TypeScript source so vitest can
+    // compile them on the fly — no need to `pnpm build:testing` first.
+    alias: {
+      '@civic-mcp/sdk': resolve(__dirname, 'packages/sdk/src/index.ts'),
+      '@civic-mcp/testing': resolve(__dirname, 'packages/testing/src/index.ts'),
+    },
+  },
   test: {
     include: ['adapters/**/*.test.ts'],
     // Each test can take up to 60 s (network + page load)

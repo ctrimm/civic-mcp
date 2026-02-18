@@ -74,7 +74,7 @@ Pre-built household, person, and address data for CO, CA, MI, and TX.
 # One-time: install the Playwright browser
 pnpm exec playwright install chromium
 
-# All adapters (from repo root) — builds testing package first
+# All adapters (from repo root)
 pnpm test:adapters
 
 # One adapter

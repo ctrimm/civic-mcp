@@ -66,7 +66,7 @@ Tests use [Playwright](https://playwright.dev) to drive a real browser against t
 # One-time: install the Playwright browser
 pnpm exec playwright install chromium
 
-# Run all adapter tests (builds @civic-mcp/testing first)
+# Run all adapter tests
 pnpm test:adapters
 
 # Run one adapter
