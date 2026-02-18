@@ -41,7 +41,7 @@ The source-of-truth adapter registry for civic-mcp. The extension and the public
 After adding or changing an adapter, regenerate `registry.json` from the adapter manifests:
 
 ```bash
-npm run registry:update
+pnpm registry:update
 # equivalent: node scripts/update-registry.js
 ```
 
@@ -50,7 +50,7 @@ The script scans every `adapters/*/manifest.json`, merges existing `installs` / 
 ## Adding a new adapter
 
 1. Build the adapter under `adapters/your.adapter.id/`
-2. Run `npm run registry:update`
+2. Run `pnpm registry:update`
 3. Verify the entry appears correctly in `registry.json`
 4. Open a PR — a maintainer will set `trustLevel` and `verified` before merging
 

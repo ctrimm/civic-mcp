@@ -8,17 +8,17 @@ This package is consumed internally via the monorepo workspace — no separate i
 
 ```bash
 # From the repo root
-npm install
+pnpm install
 ```
 
 ## Development
 
 ```bash
 cd packages/sdk
-npm run dev        # watch mode (tsc --watch)
-npm run build      # compile to dist/
-npm run typecheck  # type-check without emitting
-npm run test       # vitest
+pnpm dev        # watch mode (tsc --watch)
+pnpm build      # compile to dist/
+pnpm typecheck  # type-check without emitting
+pnpm test       # vitest
 ```
 
 ## What's inside

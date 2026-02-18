@@ -18,12 +18,12 @@ Or toggle manually: `chrome://flags/#web-mcp-api` → **Enabled**
 
 ```bash
 # From the repo root:
-npm run build:extension
+pnpm build:extension
 
 # Or from this package:
 cd packages/extension
-npm run build      # → dist/
-npm run dev        # watch mode (rebuilds on save)
+pnpm build      # → dist/
+pnpm dev        # watch mode (rebuilds on save)
 ```
 
 ## Load in Chrome
@@ -62,8 +62,8 @@ src/
 ## Scripts
 
 ```bash
-npm run build      # production build
-npm run dev        # watch + rebuild
-npm run typecheck  # tsc --noEmit
-npm run test       # vitest
+pnpm build      # production build
+pnpm dev        # watch + rebuild
+pnpm typecheck  # tsc --noEmit
+pnpm test       # vitest
 ```

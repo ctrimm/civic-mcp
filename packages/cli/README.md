@@ -5,13 +5,13 @@ Command-line tool for creating, developing, testing, validating, and publishing 
 ## Install (global)
 
 ```bash
-npm install -g @civic-mcp/cli
+pnpm add -g @civic-mcp/cli
 ```
 
-Or run directly from the monorepo:
+Or run directly from the monorepo (from the repo root):
 
 ```bash
-npm run build:cli          # compile once
+pnpm build:cli             # compile once
 node packages/cli/dist/index.js --help
 ```
 
@@ -68,7 +68,7 @@ Print instructions for installing an adapter from the Chrome extension marketpla
 
 ```bash
 cd packages/cli
-npm run dev        # watch mode
-npm run build      # compile to dist/
-npm run typecheck
+pnpm dev        # watch mode
+pnpm build      # compile to dist/
+pnpm typecheck
 ```

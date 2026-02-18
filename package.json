@@ -28,27 +28,23 @@
     "accessibility",
     "public-interest"
   ],
+  "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "pnpm": ">=9.0.0"
   },
-  "workspaces": [
-    "packages/*",
-    "adapters/*",
-    "website"
-  ],
   "scripts": {
-    "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
     "lint": "eslint packages/ adapters/ --ext .js,.ts",
     "lint:fix": "eslint packages/ adapters/ --ext .js,.ts --fix",
     "format": "prettier --write packages/ adapters/",
     "validate:adapters": "node packages/cli/bin/civic-mcp validate adapters/",
-    "dev": "npm run dev -w packages/extension",
-    "dev:website": "npm run dev -w @civic-mcp/website",
-    "build:extension": "npm run build -w packages/extension",
-    "build:cli": "npm run build -w packages/cli",
-    "build:website": "npm run build -w @civic-mcp/website",
+    "dev": "pnpm --filter @civic-mcp/extension run dev",
+    "dev:website": "pnpm --filter @civic-mcp/website run dev",
+    "build:extension": "pnpm --filter @civic-mcp/extension run build",
+    "build:cli": "pnpm --filter @civic-mcp/cli run build",
+    "build:website": "pnpm --filter @civic-mcp/website run build",
     "registry:update": "node scripts/update-registry.js",
     "prepare": "husky install"
   },

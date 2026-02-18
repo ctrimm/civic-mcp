@@ -7,7 +7,7 @@ Playwright-backed test harness for civic-mcp adapters. Provides a `SandboxContex
 Consumed as a workspace dependency — no separate install needed. Playwright browsers must be installed once:
 
 ```bash
-npx playwright install chromium
+pnpm dlx playwright install chromium
 ```
 
 ## Usage in adapter tests
@@ -66,10 +66,10 @@ civic-mcp test
 
 # Or directly:
 cd adapters/gov.colorado.peak
-npx vitest run
+pnpm dlx vitest run
 
 # From the repo root (all adapters):
-npm test
+pnpm test
 ```
 
 > **Live sites:** Tests run against real government websites — they require a live internet connection and may be slow. Authenticated tests (login required) are marked `.skip` and tagged `@authenticated`.
@@ -78,7 +78,7 @@ npm test
 
 ```bash
 cd packages/testing
-npm run build
-npm run dev        # watch mode
-npm run typecheck
+pnpm build
+pnpm dev        # watch mode
+pnpm typecheck
 ```

@@ -6,13 +6,13 @@ Public adapter discovery site — a static Astro site that reads `registry/regis
 
 ```bash
 # From the repo root:
-npm run dev:website          # http://localhost:4321
+pnpm dev:website          # http://localhost:4321
 
 # Or from this directory:
 cd website
-npm run dev
-npm run build                # → dist/  (static, deploy anywhere)
-npm run preview              # serve the built dist/ locally
+pnpm dev
+pnpm build                # → dist/  (static, deploy anywhere)
+pnpm preview              # serve the built dist/ locally
 ```
 
 ## Stack
@@ -23,11 +23,11 @@ npm run preview              # serve the built dist/ locally
 
 ## Updating the site
 
-The site rebuilds from the registry on every `npm run build`. To reflect new or updated adapters:
+The site rebuilds from the registry on every `pnpm build`. To reflect new or updated adapters:
 
 ```bash
-npm run registry:update   # regenerate registry/registry.json from adapter manifests
-npm run build:website     # rebuild the site
+pnpm registry:update   # regenerate registry/registry.json from adapter manifests
+pnpm build:website     # rebuild the site
 ```
 
 ## Deployment
