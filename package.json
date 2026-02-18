@@ -42,8 +42,8 @@
     "validate:adapters": "node packages/cli/bin/civic-mcp validate adapters/",
     "dev": "pnpm --filter @civic-mcp/extension run dev",
     "dev:website": "pnpm --filter @civic-mcp/website run dev",
-    "build:extension": "pnpm --filter @civic-mcp/extension run build",
-    "build:cli": "pnpm --filter @civic-mcp/cli run build",
+    "build:extension": "pnpm --filter '@civic-mcp/extension...' run build",
+    "build:cli": "pnpm --filter '@civic-mcp/cli...' run build",
     "build:website": "pnpm --filter @civic-mcp/website run build",
     "registry:update": "node scripts/update-registry.js",
     "prepare": "husky install"
