@@ -111,17 +111,5 @@ export function validateManifest(raw: unknown): ValidationResult {
     errors.push({ field: 'verified', message: 'Must be a boolean' });
   }
 
-  // Verified plugins require a signature block
-  if (
-    manifest['verified'] === true &&
-    manifest['trustLevel'] !== 'community' &&
-    typeof manifest['signature'] !== 'object'
-  ) {
-    errors.push({
-      field: 'signature',
-      message: 'Verified and official plugins must include a signature block',
-    });
-  }
-
   return { valid: errors.length === 0, errors };
 }

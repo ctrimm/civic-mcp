@@ -62,6 +62,7 @@ export const MAX_STORAGE_BYTES = 100 * 1024;
 export function sanitizeFieldValue(value: string): string {
   // Remove null bytes and ASCII control characters (0x00–0x1F, 0x7F)
   // but preserve common whitespace: tab (0x09), newline (0x0A), CR (0x0D)
+  // eslint-disable-next-line no-control-regex
   return value.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 }
 

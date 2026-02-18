@@ -75,7 +75,6 @@ export function createHarness(options: HarnessOptions): AdapterTestHarness {
   async function init() {
     if (browser) return;
 
-    const { createRequire } = await import('node:module');
     const { pathToFileURL } = await import('node:url');
 
     // Load manifest

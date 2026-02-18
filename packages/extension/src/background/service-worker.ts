@@ -8,13 +8,9 @@ import {
   uninstallPlugin,
   setPluginEnabled,
   getInstalledPlugins,
-  checkForUpdates,
   fetchRegistry,
-  type InstalledPlugin,
-  type UpdateInfo,
 } from '../core/registry-client.js';
 import { runUpdateCheck, shouldRunCheck } from '../core/updater.js';
-import type { RegistryIndex } from '@civic-mcp/sdk';
 
 // ---------------------------------------------------------------------------
 // Message types

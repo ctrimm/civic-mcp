@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, afterAll } from 'vitest';
-import { createHarness, TEST_HOUSEHOLDS, matchers } from '@civic-mcp/testing';
+import { createHarness, matchers } from '@civic-mcp/testing';
 import { resolve } from 'node:path';
 
 expect.extend(matchers);

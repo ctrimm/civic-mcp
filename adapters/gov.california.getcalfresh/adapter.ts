@@ -92,7 +92,7 @@ const adapter: AdapterModule = {
         context: SandboxContext,
       ): Promise<ToolResult> {
         try {
-          const { page, storage, utils } = context;
+          const { page, storage } = context;
 
           // Check cache (valid for 24 hours)
           const cacheKey = `eligibility:${params.zipCode}:${params.householdSize}:${params.monthlyGrossIncome}`;

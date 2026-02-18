@@ -9,7 +9,8 @@ import { Command } from 'commander';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
-import pc from 'picocolors';
+import chalk from 'chalk';
+const pc = { red: chalk.red, bold: chalk.bold };
 
 export function testCommand(): Command {
   const cmd = new Command('test');

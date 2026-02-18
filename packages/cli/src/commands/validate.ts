@@ -11,7 +11,7 @@ import path from 'node:path';
 import chalk from 'chalk';
 import ora from 'ora';
 import { validateManifest } from '@civic-mcp/sdk';
-import { section, success, error, warn, fatal, SYMBOLS } from '../ui.js';
+import { section, success, error, fatal, SYMBOLS } from '../ui.js';
 
 const DISALLOWED_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   { pattern: /\beval\s*\(/, message: 'eval() is not allowed' },

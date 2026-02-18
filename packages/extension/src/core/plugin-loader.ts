@@ -8,7 +8,7 @@
 
 import type { AdapterManifest, AdapterModule, DeclarativeAdapterConfig, DeclarativeTool, ToolResult } from '@civic-mcp/sdk';
 import { isUrlAllowed, namespacedToolName } from '@civic-mcp/sdk';
-import { getInstalledPlugins, isPluginEnabled } from './registry-client.js';
+import { getInstalledPlugins } from './registry-client.js';
 import { createSandboxContext, executePluginCode } from './sandbox.js';
 
 // ---------------------------------------------------------------------------
