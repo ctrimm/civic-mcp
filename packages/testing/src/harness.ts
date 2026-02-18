@@ -92,6 +92,18 @@ export function createHarness(options: HarnessOptions): AdapterTestHarness {
       throw new Error(`Adapter at "${options.adapterPath}" has no tools`);
     }
 
+    // Preflight: verify the Chromium binary has been downloaded
+    const { existsSync } = await import('node:fs');
+    const executablePath = chromium.executablePath();
+    if (!existsSync(executablePath)) {
+      throw new Error(
+        `Playwright Chromium binary not found at:\n  ${executablePath}\n\n` +
+          `Install it with one of:\n` +
+          `  pnpm --filter @civic-mcp/testing exec playwright install chromium\n` +
+          `  npx playwright install chromium\n`,
+      );
+    }
+
     browser = await chromium.launch({
       headless: !(options.headed ?? process.env['CIVIC_MCP_HEADED'] === '1'),
       // Enable WebMCP experimental flag

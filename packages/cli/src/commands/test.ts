@@ -34,6 +34,35 @@ export function testCommand(): Command {
         process.exit(1);
       }
 
+      // Playwright preflight — fail fast before spawning vitest
+      const PLAYWRIGHT_INSTALL_CMD = 'pnpm --filter @civic-mcp/testing exec playwright install chromium';
+      const precheck = spawnSync(
+        process.execPath,
+        [
+          '-e',
+          [
+            "const {chromium}=require('playwright');",
+            "const fs=require('fs');",
+            "const exe=chromium.executablePath();",
+            "if(!fs.existsSync(exe)){process.stderr.write('BROWSER_MISSING');process.exit(1);}",
+          ].join(''),
+        ],
+        { stdio: 'pipe', shell: false },
+      );
+      if (precheck.status !== 0) {
+        const stderr = precheck.stderr?.toString() ?? '';
+        if (stderr.includes('Cannot find module') && stderr.includes('playwright')) {
+          console.error(pc.red('\n  playwright is not installed. Run: pnpm install\n'));
+        } else if (stderr.includes('BROWSER_MISSING')) {
+          console.error(pc.red('\n  Playwright Chromium browser is not installed.'));
+          console.error(`  Run: ${pc.bold(PLAYWRIGHT_INSTALL_CMD)}\n`);
+        } else {
+          console.error(pc.red('\n  Playwright preflight check failed.'));
+          console.error(`  Run: ${pc.bold(PLAYWRIGHT_INSTALL_CMD)}\n`);
+        }
+        process.exit(1);
+      }
+
       console.log(pc.bold(`\n🧪 Running tests in ${dir}\n`));
 
       const vitestArgs = ['run', '--reporter=verbose'];
