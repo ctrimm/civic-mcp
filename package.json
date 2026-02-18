@@ -44,7 +44,9 @@
     "dev:website": "pnpm --filter @civic-mcp/website run dev",
     "build:extension": "pnpm --filter '@civic-mcp/extension...' run build",
     "build:cli": "pnpm --filter '@civic-mcp/cli...' run build",
+    "build:testing": "pnpm --filter '@civic-mcp/testing...' run build",
     "build:website": "pnpm --filter @civic-mcp/website run build",
+    "test:adapters": "pnpm build:testing && vitest run",
     "registry:update": "node scripts/update-registry.js",
     "prepare": "husky install"
   },
