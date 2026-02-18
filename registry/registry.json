@@ -1,7 +1,22 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-02-17T00:00:00Z",
+  "updatedAt": "2026-02-18T00:00:00Z",
   "plugins": [
+    {
+      "id": "gov.ssa.retirement",
+      "name": "Social Security Retirement Benefits",
+      "description": "Estimate monthly Social Security retirement benefits and begin a retirement application on SSA.gov. Demonstrates waitForHuman() for reCAPTCHA handling.",
+      "latestVersion": "0.1.0",
+      "category": "federal",
+      "tags": ["Social Security", "Retirement", "SSA", "Federal", "Benefits"],
+      "trustLevel": "verified",
+      "verified": true,
+      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.ssa.retirement-0.1.0/plugin.zip",
+      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.ssa.retirement/manifest.json",
+      "updatedAt": "2026-02-18T00:00:00Z",
+      "installs": 0,
+      "rating": 0
+    },
     {
       "id": "gov.colorado.peak",
       "name": "Colorado PEAK Benefits",
@@ -76,7 +91,7 @@
     {
       "id": "federal",
       "name": "Federal Services",
-      "count": 0
+      "count": 1
     },
     {
       "id": "local_government",
