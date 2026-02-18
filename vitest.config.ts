@@ -17,13 +17,6 @@ export default defineConfig({
     hookTimeout: 30_000,
     // Forked processes keep Playwright browser instances isolated per suite
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        // Run one adapter at a time to avoid hammering live sites in parallel
-        singleFork: false,
-        maxForks: 2,
-      },
-    },
     reporter: 'verbose',
   },
 });
