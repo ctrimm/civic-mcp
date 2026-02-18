@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare artifacts directory
+        run: mkdir -p release-artifacts
+
+      # ── CLI ────────────────────────────────────────────────────────────────
+
+      - name: Build CLI
+        run: pnpm run build:cli
+
+      - name: Pack CLI tarball
+        run: pnpm --filter @civic-mcp/cli pack --pack-destination ../../release-artifacts
+        working-directory: packages/cli
+
+      # ── Extension ──────────────────────────────────────────────────────────
+
+      - name: Build extension
+        run: pnpm run build:extension
+
+      - name: Zip extension
+        run: |
+          cd packages/extension/dist
+          zip -r "../../../release-artifacts/civic-mcp-extension-${{ github.ref_name }}.zip" .
+
+      # ── GitHub Release ─────────────────────────────────────────────────────
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-artifacts/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
