@@ -7,38 +7,48 @@ Playwright-backed test harness for civic-mcp adapters. Provides a `SandboxContex
 Consumed as a workspace dependency — no separate install needed. Playwright browsers must be installed once:
 
 ```bash
-pnpm dlx playwright install chromium
+pnpm exec playwright install chromium
 ```
 
 ## Usage in adapter tests
 
 ```ts
-import { test, expect } from 'vitest';
-import { createHarness } from '@civic-mcp/testing';
+import { describe, it, expect, afterAll } from 'vitest';
+import { createHarness, matchers } from '@civic-mcp/testing';
+import { resolve } from 'node:path';
 
-test('check_eligibility returns a result', async () => {
-  const harness = await createHarness();
+expect.extend(matchers);
 
-  const result = await harness.runTool('check_eligibility', {
-    householdSize: 3,
-    monthlyIncome: 2500,
+const harness = createHarness({
+  adapterPath: resolve(import.meta.dirname, '../adapter.ts'),
+  manifestPath: resolve(import.meta.dirname, '../manifest.json'),
+});
+
+afterAll(() => harness.close());
+
+describe('check_eligibility', () => {
+  it('returns a result', { timeout: 30_000 }, async () => {
+    const result = await harness.testTool('check_eligibility', {
+      householdSize: 3,
+      monthlyIncome: 2500,
+    });
+    expect(result.success).toBe(true);
   });
-
-  expect(result).toBeToolSuccess();
-  harness.close();
 });
 ```
 
 ## API
 
-### `createHarness(options?)`
+### `createHarness(options)`
 
-Returns an `AdapterTestHarness` with a real Playwright browser backing the `SandboxContext`.
+Returns an `AdapterTestHarness` with a real Playwright browser backing the `SandboxContext`. The browser launches lazily on the first `testTool()` call.
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `headless` | `true` | Run browser headlessly |
-| `baseURL` | — | Base URL for relative navigations |
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `adapterPath` | `string` | ✅ | Absolute path to `adapter.ts` / `adapter.js` |
+| `manifestPath` | `string` | ✅ | Absolute path to `manifest.json` |
+| `headed` | `boolean` | — | Show the browser window (default: `false`) |
+| `timeout` | `number` | — | Page operation timeout in ms (default: `15000`) |
 
 ### Matchers
 
@@ -61,18 +71,20 @@ Pre-built household, person, and address data for CO, CA, MI, and TX.
 ## Running adapter tests
 
 ```bash
-# From an adapter directory:
-civic-mcp test
+# One-time: install the Playwright browser
+pnpm exec playwright install chromium
 
-# Or directly:
-cd adapters/gov.colorado.peak
-pnpm dlx vitest run
+# All adapters (from repo root) — builds testing package first
+pnpm test:adapters
 
-# From the repo root (all adapters):
-pnpm test
+# One adapter
+pnpm exec vitest run adapters/gov.colorado.peak
+
+# Headed mode (see the browser window)
+CIVIC_MCP_HEADED=1 pnpm exec vitest run adapters/gov.colorado.peak
 ```
 
-> **Live sites:** Tests run against real government websites — they require a live internet connection and may be slow. Authenticated tests (login required) are marked `.skip` and tagged `@authenticated`.
+> **Live sites:** Tests run against real government websites — they require a live internet connection and may be slow. Authenticated tests (login required) are marked `.skip`; set the relevant `*_SESSION_COOKIE` env var to enable them.
 
 ## Development
 

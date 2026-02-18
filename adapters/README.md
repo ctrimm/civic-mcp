@@ -58,4 +58,22 @@ civic-mcp publish
 }
 ```
 
+## Testing adapters
+
+Tests use [Playwright](https://playwright.dev) to drive a real browser against the live site. See [`packages/testing`](../packages/testing/README.md) for the full API.
+
+```bash
+# One-time: install the Playwright browser
+pnpm exec playwright install chromium
+
+# Run all adapter tests (builds @civic-mcp/testing first)
+pnpm test:adapters
+
+# Run one adapter
+pnpm exec vitest run adapters/gov.colorado.peak
+
+# Show the browser window while running
+CIVIC_MCP_HEADED=1 pnpm exec vitest run adapters/gov.colorado.peak
+```
+
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full submission process.
