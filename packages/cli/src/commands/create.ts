@@ -5,10 +5,11 @@
  */
 
 import { Command } from 'commander';
-import { input, select } from '@inquirer/prompts';
+import prompts from 'prompts';
+import chalk from 'chalk';
 import fs from 'node:fs';
 import path from 'node:path';
-import pc from 'picocolors';
+import { banner, section, fatal, nextSteps, withSpinner, onCancel, hint } from '../ui.js';
 import type { TrustLevel } from '@civic-mcp/sdk';
 
 export function createCommand(): Command {
@@ -16,119 +17,183 @@ export function createCommand(): Command {
   cmd
     .description('Scaffold a new civic-mcp adapter')
     .action(async () => {
-      console.log(pc.bold('\n🏛️  civic-mcp adapter wizard\n'));
+      banner();
 
-      const id = await input({
-        message: 'Adapter ID (reverse-DNS format, e.g. gov.colorado.peak):',
-        validate: (v) =>
-          /^[a-z]{2,}(\.[a-z0-9-]+){2,}$/.test(v) ||
-          'Must be reverse-DNS format (e.g. gov.state.portal)',
-      });
+      console.log(
+        `  ${chalk.bold('Create a new adapter')}  ${chalk.dim('Answer a few questions to get started.')}\n`,
+      );
 
-      const name = await input({
-        message: 'Adapter name:',
-        default: id.split('.').slice(1).map(capitalize).join(' '),
-      });
+      // ── Prompts ─────────────────────────────────────────────────────────
+      const { id } = await prompts(
+        {
+          type: 'text',
+          name: 'id',
+          message: 'Adapter ID',
+          hint: hint('reverse-DNS format, e.g. gov.colorado.peak'),
+          validate: (v: string) =>
+            /^[a-z]{2,}(\.[a-z0-9-]+){2,}$/.test(v)
+              ? true
+              : 'Must be reverse-DNS format (e.g. gov.state.portal)',
+        },
+        { onCancel },
+      );
 
-      const description = await input({
-        message: 'Short description:',
-      });
+      const defaultName = (id as string)
+        .split('.')
+        .slice(1)
+        .map(capitalize)
+        .join(' ');
 
-      const homepage = await input({
-        message: 'Target website URL:',
-        validate: (v) => v.startsWith('https://') || 'Must be an https:// URL',
-      });
+      const { name } = await prompts(
+        {
+          type: 'text',
+          name: 'name',
+          message: 'Adapter name',
+          initial: defaultName,
+          hint: hint(`default: ${defaultName}`),
+        },
+        { onCancel },
+      );
 
-      const domainsRaw = await input({
-        message: 'Allowed domains (comma-separated, e.g. mysite.gov,portal.mysite.gov):',
-        validate: (v) => v.trim().length > 0 || 'At least one domain required',
-      });
+      const { description } = await prompts(
+        { type: 'text', name: 'description', message: 'Short description' },
+        { onCancel },
+      );
 
-      const domains = domainsRaw.split(',').map((d) => d.trim()).filter(Boolean);
+      const { homepage } = await prompts(
+        {
+          type: 'text',
+          name: 'homepage',
+          message: 'Target website URL',
+          hint: hint('must start with https://'),
+          validate: (v: string) =>
+            v.startsWith('https://') ? true : 'Must be an https:// URL',
+        },
+        { onCancel },
+      );
 
-      const approach = await select({
-        message: 'Adapter approach:',
-        choices: [
-          { name: 'Declarative JSON (no code, for simple forms)', value: 'declarative' },
-          { name: 'JavaScript (for complex, multi-step workflows)', value: 'js' },
-          { name: 'Hybrid (declarative + JavaScript helpers)', value: 'hybrid' },
-        ],
-      });
+      const { domainsRaw } = await prompts(
+        {
+          type: 'text',
+          name: 'domainsRaw',
+          message: 'Allowed domains',
+          hint: hint('comma-separated, e.g. mysite.gov,portal.mysite.gov'),
+          validate: (v: string) =>
+            v.trim().length > 0 ? true : 'At least one domain required',
+        },
+        { onCancel },
+      );
 
-      const state = await input({
-        message: 'State code (2-letter, leave blank if federal/local):',
-        validate: (v) =>
-          v === '' || /^[A-Z]{2}$/.test(v.toUpperCase()) || 'Must be 2-letter state code',
-      });
+      const { approach } = await prompts(
+        {
+          type: 'select',
+          name: 'approach',
+          message: 'Adapter approach',
+          choices: [
+            {
+              title: 'Declarative JSON',
+              description: 'No code needed — great for simple forms',
+              value: 'declarative',
+            },
+            {
+              title: 'JavaScript',
+              description: 'Full control for complex, multi-step workflows',
+              value: 'js',
+            },
+            {
+              title: 'Hybrid',
+              description: 'Declarative + JavaScript helpers',
+              value: 'hybrid',
+            },
+          ],
+        },
+        { onCancel },
+      );
 
-      const dirName = `gov.${id.split('.').slice(1).join('.')}`;
+      const { state } = await prompts(
+        {
+          type: 'text',
+          name: 'state',
+          message: 'State code',
+          hint: hint('2-letter US state code — leave blank if federal or local'),
+          validate: (v: string) =>
+            v === '' || /^[A-Za-z]{2}$/.test(v) ? true : 'Must be a 2-letter state code',
+        },
+        { onCancel },
+      );
+
+      // ── Guard ────────────────────────────────────────────────────────────
+      if (!id || !name || !homepage || !domainsRaw || !approach) {
+        fatal('Setup cancelled — all required fields must be filled in.');
+      }
+
+      const domains = (domainsRaw as string).split(',').map((d: string) => d.trim()).filter(Boolean);
+      const dirName = id as string;
       const outDir = path.resolve(process.cwd(), dirName);
 
       if (fs.existsSync(outDir)) {
-        console.error(pc.red(`\nDirectory already exists: ${outDir}`));
-        process.exit(1);
+        fatal(`Directory already exists: ${chalk.cyan(outDir)}`);
       }
 
-      fs.mkdirSync(outDir, { recursive: true });
-      fs.mkdirSync(path.join(outDir, 'tests'), { recursive: true });
+      // ── Scaffold ─────────────────────────────────────────────────────────
+      section('Scaffolding adapter');
 
-      // manifest.json
-      const manifest = {
-        id,
-        name,
-        version: '0.1.0',
-        author: 'Community Contributor',
-        description,
-        homepage,
-        repository: `https://github.com/YOUR_USERNAME/${dirName}`,
-        license: 'MIT',
-        domains,
-        tools: [
-          {
-            name: 'check_eligibility',
-            securityLevel: 'read_only',
-            category: 'eligibility',
+      await withSpinner('Writing files…', async (spinner) => {
+        fs.mkdirSync(outDir, { recursive: true });
+        fs.mkdirSync(path.join(outDir, 'tests'), { recursive: true });
+
+        const manifest = {
+          id,
+          name,
+          version: '0.1.0',
+          author: 'Community Contributor',
+          description,
+          homepage,
+          repository: `https://github.com/YOUR_USERNAME/${dirName}`,
+          license: 'MIT',
+          domains,
+          tools: [
+            { name: 'check_eligibility', securityLevel: 'read_only', category: 'eligibility' },
+          ],
+          permissions: {
+            required: ['read:forms', 'write:forms'],
+            optional: ['storage:local', 'notifications'],
           },
-        ],
-        permissions: {
-          required: ['read:forms', 'write:forms'],
-          optional: ['storage:local', 'notifications'],
-        },
-        declarative: approach === 'declarative',
-        trustLevel: 'community' as TrustLevel,
-        verified: false,
-        ...(state ? { state: state.toUpperCase() } : {}),
-        category: 'state_benefits',
-        tags: state ? [state.toUpperCase()] : [],
-      };
+          declarative: approach === 'declarative',
+          trustLevel: 'community' as TrustLevel,
+          verified: false,
+          ...((state as string) ? { state: (state as string).toUpperCase() } : {}),
+          category: 'state_benefits',
+          tags: (state as string) ? [(state as string).toUpperCase()] : [],
+        };
 
-      writeJson(path.join(outDir, 'manifest.json'), manifest);
+        writeJson(path.join(outDir, 'manifest.json'), manifest);
+        spinner.text = chalk.dim('Writing manifest.json…');
 
-      // adapter file
-      if (approach === 'declarative') {
-        writeJson(path.join(outDir, 'declarative.json'), buildDeclarativeTemplate(id));
-      } else {
-        writeFile(path.join(outDir, 'adapter.ts'), buildJSTemplate(id, approach === 'hybrid'));
-      }
+        if (approach === 'declarative') {
+          writeJson(path.join(outDir, 'declarative.json'), buildDeclarativeTemplate(id as string));
+        } else {
+          writeFile(path.join(outDir, 'adapter.ts'), buildJSTemplate(id as string));
+        }
+        spinner.text = chalk.dim('Writing adapter…');
 
-      // selectors.json
-      writeJson(path.join(outDir, 'selectors.json'), { 'eligibility-form': 'form#eligibility' });
+        writeJson(path.join(outDir, 'selectors.json'), { 'eligibility-form': 'form#eligibility' });
+        writeFile(path.join(outDir, 'README.md'), buildReadme(name as string, id as string, homepage as string));
+        writeFile(
+          path.join(outDir, 'tests', 'check-eligibility.test.ts'),
+          buildTestTemplate(id as string),
+        );
 
-      // README.md
-      writeFile(path.join(outDir, 'README.md'), buildReadme(name, id, homepage));
+        spinner.succeed(chalk.green(`Adapter created  ${chalk.dim(outDir)}`));
+      });
 
-      // test file
-      writeFile(
-        path.join(outDir, 'tests', 'check-eligibility.test.ts'),
-        buildTestTemplate(id),
-      );
-
-      console.log(pc.green(`\n✅ Adapter created: ${outDir}\n`));
-      console.log(`Next steps:`);
-      console.log(`  ${pc.cyan('cd')} ${dirName}`);
-      console.log(`  ${pc.cyan('civic-mcp link')}     # Link to dev extension`);
-      console.log(`  ${pc.cyan('civic-mcp validate')} # Check manifest`);
-      console.log(`  ${pc.cyan('civic-mcp test')}     # Run tests against live site`);
+      // ── Next steps ───────────────────────────────────────────────────────
+      nextSteps([
+        { cmd: `cd ${dirName}` },
+        { cmd: 'civic-mcp link',     desc: 'link to dev extension' },
+        { cmd: 'civic-mcp validate', desc: 'check manifest & security' },
+        { cmd: 'civic-mcp test',     desc: 'run tests against live site' },
+      ]);
     });
 
   return cmd;
@@ -171,14 +236,13 @@ function buildDeclarativeTemplate(id: string): object {
   };
 }
 
-function buildJSTemplate(id: string, hybrid: boolean): string {
+function buildJSTemplate(id: string): string {
   return `import type { AdapterModule, SandboxContext, ToolResult } from '@civic-mcp/sdk';
 
 const adapter: AdapterModule = {
   id: '${id}',
 
   async init(context: SandboxContext): Promise<void> {
-    // Called once when the adapter loads on a matching page
     context.notify.info('${id} adapter loaded');
   },
 
@@ -189,16 +253,8 @@ const adapter: AdapterModule = {
       inputSchema: {
         type: 'object',
         properties: {
-          householdSize: {
-            type: 'number',
-            description: 'Number of people in household',
-            minimum: 1,
-          },
-          monthlyIncome: {
-            type: 'number',
-            description: 'Monthly gross income in dollars',
-            minimum: 0,
-          },
+          householdSize: { type: 'number', description: 'Number of people in household', minimum: 1 },
+          monthlyIncome: { type: 'number', description: 'Monthly gross income in dollars', minimum: 0 },
         },
         required: ['householdSize', 'monthlyIncome'],
       },
@@ -207,33 +263,20 @@ const adapter: AdapterModule = {
         context: SandboxContext,
       ): Promise<ToolResult> {
         try {
-          const { page, notify } = context;
-
-          await page.navigate('https://example.gov/check', {
-            waitForSelector: 'form#eligibility',
-          });
-
+          const { page } = context;
+          await page.navigate('https://example.gov/check', { waitForSelector: 'form#eligibility' });
           await page.fillField('input[name="household_size"]', String(params.householdSize));
           await page.fillField('input[name="monthly_income"]', String(params.monthlyIncome));
           await page.click('button[type="submit"]', { waitForNavigation: false });
           await page.waitForSelector('.results');
-
           const eligible = await page.getText('.results .eligible');
-          const message = await page.getText('.results .message');
-
+          const message  = await page.getText('.results .message');
           return {
             success: true,
-            data: {
-              eligible: /yes|true|eligible/i.test(eligible ?? ''),
-              message: message ?? '',
-            },
+            data: { eligible: /yes|true|eligible/i.test(eligible ?? ''), message: message ?? '' },
           };
         } catch (err) {
-          return {
-            success: false,
-            error: err instanceof Error ? err.message : String(err),
-            code: 'UNKNOWN',
-          };
+          return { success: false, error: err instanceof Error ? err.message : String(err), code: 'UNKNOWN' };
         }
       },
     },
@@ -284,7 +327,7 @@ MIT
 }
 
 function buildTestTemplate(id: string): string {
-  return `import { describe, it, expect } from 'vitest';
+  return `import { describe, it, expect, afterAll } from 'vitest';
 import { createHarness } from '@civic-mcp/testing';
 import { resolve } from 'node:path';
 
@@ -293,13 +336,14 @@ const harness = createHarness({
   manifestPath: resolve(import.meta.dirname, '../manifest.json'),
 });
 
+afterAll(() => harness.close());
+
 describe('${id} — check_eligibility', () => {
   it('returns eligibility result for valid inputs', { timeout: 30_000 }, async () => {
     const result = await harness.testTool('check_eligibility', {
       householdSize: 3,
       monthlyIncome: 2500,
     });
-
     expect(result.success).toBe(true);
     if (result.success) {
       expect(typeof result.data['eligible']).toBe('boolean');
@@ -308,12 +352,7 @@ describe('${id} — check_eligibility', () => {
   });
 
   it('handles invalid inputs gracefully', { timeout: 15_000 }, async () => {
-    const result = await harness.testTool('check_eligibility', {
-      householdSize: -1,
-      monthlyIncome: 0,
-    });
-
-    // Should either succeed or fail with a clear error — never throw
+    const result = await harness.testTool('check_eligibility', { householdSize: -1, monthlyIncome: 0 });
     expect(result).toHaveProperty('success');
   });
 });
@@ -327,11 +366,9 @@ describe('${id} — check_eligibility', () => {
 function writeJson(filePath: string, data: object) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
 }
-
 function writeFile(filePath: string, content: string) {
   fs.writeFileSync(filePath, content);
 }
-
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }

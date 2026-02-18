@@ -8,7 +8,8 @@
  */
 
 import { Command } from 'commander';
-import pc from 'picocolors';
+import chalk from 'chalk';
+import { section, info, nextSteps, SYMBOLS } from '../ui.js';
 
 export function installCommand(): Command {
   const cmd = new Command('install');
@@ -16,13 +17,26 @@ export function installCommand(): Command {
     .description('Install an adapter from the registry')
     .argument('<adapter-id>', 'Adapter ID (e.g. gov.colorado.peak)')
     .action((adapterId: string) => {
-      console.log(pc.bold(`\n📦 Installing ${adapterId}\n`));
+      section('Install adapter');
+
       console.log(
-        `To install an adapter, open the Civic-MCP extension in Chrome and search for "${adapterId}" in the Marketplace.\n`,
+        `  ${SYMBOLS.info} ${chalk.bold(adapterId)}\n`,
       );
-      console.log(
-        `Future versions of this CLI will use native messaging to install adapters directly.\n`,
-      );
+
+      info('Browser extensions manage their own storage.');
+      info('Direct CLI installation requires native messaging (coming soon).');
+      console.log('');
+
+      nextSteps([
+        {
+          cmd: 'chrome://extensions',
+          desc: 'open Extensions and ensure civic-mcp is enabled',
+        },
+        {
+          cmd: `Search "${adapterId}" in the Marketplace`,
+          desc: 'click Install from the extension popup',
+        },
+      ]);
     });
 
   return cmd;

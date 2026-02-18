@@ -8,8 +8,10 @@
 import { Command } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
-import pc from 'picocolors';
+import chalk from 'chalk';
+import ora from 'ora';
 import { validateManifest } from '@civic-mcp/sdk';
+import { section, success, error, warn, fatal, SYMBOLS } from '../ui.js';
 
 const DISALLOWED_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   { pattern: /\beval\s*\(/, message: 'eval() is not allowed' },
@@ -39,18 +41,20 @@ export function validateCommand(): Command {
       const dir = path.resolve(adapterPath);
 
       if (!fs.existsSync(dir)) {
-        console.error(pc.red(`Directory not found: ${dir}`));
-        process.exit(1);
+        fatal(`Directory not found: ${dir}`);
       }
 
       let hasErrors = false;
 
       // ── Manifest ──────────────────────────────────────────────────────────
-      console.log(pc.bold('\n📋 Manifest validation\n'));
+      section('Manifest');
 
       const manifestPath = path.join(dir, 'manifest.json');
+
+      const manifestSpinner = ora({ text: 'Reading manifest.json', color: 'cyan' }).start();
+
       if (!fs.existsSync(manifestPath)) {
-        console.error(pc.red('  FAIL manifest.json not found'));
+        manifestSpinner.fail(chalk.red('manifest.json not found'));
         process.exit(1);
       }
 
@@ -58,17 +62,17 @@ export function validateCommand(): Command {
       try {
         manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
       } catch (err) {
-        console.error(pc.red(`  FAIL Invalid JSON: ${(err as Error).message}`));
+        manifestSpinner.fail(chalk.red(`Invalid JSON: ${(err as Error).message}`));
         process.exit(1);
       }
 
       const result = validateManifest(manifest);
       if (result.valid) {
-        console.log(pc.green('  PASS manifest.json'));
+        manifestSpinner.succeed(chalk.green('manifest.json is valid'));
       } else {
-        console.error(pc.red('  FAIL manifest.json'));
+        manifestSpinner.fail(chalk.red('manifest.json has errors'));
         for (const { field, message } of result.errors) {
-          console.error(pc.red(`       ${field}: ${message}`));
+          error(`  ${field}: ${message}`);
         }
         hasErrors = true;
       }
@@ -79,30 +83,30 @@ export function validateCommand(): Command {
       );
 
       if (adapterFiles.length === 0) {
-        console.error(pc.red('  FAIL No adapter file found (adapter.ts, adapter.js, or declarative.json)'));
+        error('No adapter file found (adapter.ts, adapter.js, or declarative.json)');
         hasErrors = true;
       } else {
         for (const f of adapterFiles) {
+          const sizeSpinner = ora({ text: `Checking size of ${f}`, color: 'cyan' }).start();
           const filePath = path.join(dir, f);
           const bytes = fs.statSync(filePath).size;
           if (bytes > MAX_ADAPTER_SIZE_BYTES) {
-            console.error(
-              pc.red(`  FAIL ${f} is too large (${(bytes / 1024).toFixed(0)} KB > 500 KB)`),
-            );
+            sizeSpinner.fail(chalk.red(`${f} is too large (${(bytes / 1024).toFixed(0)} KB > 500 KB)`));
             hasErrors = true;
           } else {
-            console.log(pc.green(`  PASS ${f} size (${(bytes / 1024).toFixed(0)} KB)`));
+            sizeSpinner.succeed(chalk.green(`${f} size OK (${(bytes / 1024).toFixed(0)} KB)`));
           }
         }
       }
 
       // ── Security scan ─────────────────────────────────────────────────────
       if (opts.securityScan) {
-        console.log(pc.bold('\n🔒 Security scan\n'));
+        section('Security scan');
 
         const jsFiles = adapterFiles.filter((f) => f.endsWith('.ts') || f.endsWith('.js'));
 
         for (const f of jsFiles) {
+          const scanSpinner = ora({ text: `Scanning ${f}`, color: 'cyan' }).start();
           const filePath = path.join(dir, f);
           const source = fs.readFileSync(filePath, 'utf8');
           const issues: string[] = [];
@@ -114,11 +118,11 @@ export function validateCommand(): Command {
           }
 
           if (issues.length === 0) {
-            console.log(pc.green(`  PASS ${f}`));
+            scanSpinner.succeed(chalk.green(`${f} — no disallowed patterns`));
           } else {
-            console.error(pc.red(`  FAIL ${f}`));
+            scanSpinner.fail(chalk.red(`${f} — ${issues.length} issue(s) found`));
             for (const issue of issues) {
-              console.error(pc.red(`       ${issue}`));
+              console.log(`    ${SYMBOLS.error} ${chalk.red(issue)}`);
             }
             hasErrors = true;
           }
@@ -126,29 +130,37 @@ export function validateCommand(): Command {
       }
 
       // ── Tests present ─────────────────────────────────────────────────────
-      console.log(pc.bold('\n🧪 Tests\n'));
+      section('Tests');
+
+      const testsSpinner = ora({ text: 'Looking for test files', color: 'cyan' }).start();
       const testsDir = path.join(dir, 'tests');
       if (!fs.existsSync(testsDir) || fs.readdirSync(testsDir).length === 0) {
-        console.warn(pc.yellow('  WARN No tests found in tests/ directory'));
+        testsSpinner.warn(chalk.yellow('No tests found in tests/ directory'));
       } else {
-        const testFiles = fs.readdirSync(testsDir).filter((f) => f.endsWith('.test.ts') || f.endsWith('.test.js'));
-        console.log(pc.green(`  PASS ${testFiles.length} test file(s) found`));
+        const testFiles = fs.readdirSync(testsDir).filter(
+          (f) => f.endsWith('.test.ts') || f.endsWith('.test.js'),
+        );
+        testsSpinner.succeed(chalk.green(`${testFiles.length} test file(s) found`));
       }
 
       // ── README ────────────────────────────────────────────────────────────
-      console.log(pc.bold('\n📖 Documentation\n'));
+      section('Documentation');
+
+      const readmeSpinner = ora({ text: 'Looking for README.md', color: 'cyan' }).start();
       if (!fs.existsSync(path.join(dir, 'README.md'))) {
-        console.warn(pc.yellow('  WARN No README.md found'));
+        readmeSpinner.warn(chalk.yellow('No README.md found'));
       } else {
-        console.log(pc.green('  PASS README.md found'));
+        readmeSpinner.succeed(chalk.green('README.md found'));
       }
 
       console.log('');
       if (hasErrors) {
-        console.error(pc.red('Validation failed. Fix the errors above before publishing.\n'));
+        error('Validation failed. Fix the errors above before publishing.');
+        console.log('');
         process.exit(1);
       } else {
-        console.log(pc.green('✅ All checks passed!\n'));
+        success('All checks passed!');
+        console.log('');
       }
     });
 

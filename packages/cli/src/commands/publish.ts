@@ -11,7 +11,8 @@ import { Command } from 'commander';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import pc from 'picocolors';
+import chalk from 'chalk';
+import { section, success, error, warn, fatal, withSpinner, nextSteps, SYMBOLS } from '../ui.js';
 
 export function publishCommand(): Command {
   const cmd = new Command('publish');
@@ -24,8 +25,7 @@ export function publishCommand(): Command {
       const manifestPath = path.join(dir, 'manifest.json');
 
       if (!fs.existsSync(manifestPath)) {
-        console.error(pc.red(`No manifest.json found in: ${dir}`));
-        process.exit(1);
+        fatal(`No manifest.json found in: ${dir}`);
       }
 
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {
@@ -36,7 +36,8 @@ export function publishCommand(): Command {
       };
 
       // ── Validate first ────────────────────────────────────────────────────
-      console.log(pc.bold('\n📋 Running validation…\n'));
+      section('Validation');
+
       const validateResult = spawnSync(
         process.execPath,
         [process.argv[1]!, 'validate', dir],
@@ -44,34 +45,45 @@ export function publishCommand(): Command {
       );
 
       if (validateResult.status !== 0) {
-        console.error(pc.red('\nValidation failed. Fix errors before publishing.\n'));
+        error('Validation failed. Fix errors before publishing.');
+        console.log('');
         process.exit(1);
       }
 
       if (opts.dryRun) {
-        console.log(pc.green('\n✅ Dry run complete — adapter is ready to publish.\n'));
+        success('Dry run complete — adapter is ready to publish.');
+        console.log('');
         return;
       }
 
       // ── Check gh is installed ─────────────────────────────────────────────
-      const ghCheck = spawnSync('gh', ['--version'], { stdio: 'pipe' });
-      if (ghCheck.status !== 0) {
-        console.error(pc.red('\nThe `gh` CLI is required for publishing. Install from https://cli.github.com\n'));
-        process.exit(1);
-      }
+      await withSpinner('Checking gh CLI…', async () => {
+        const ghCheck = spawnSync('gh', ['--version'], { stdio: 'pipe' });
+        if (ghCheck.status !== 0) {
+          throw new Error('`gh` CLI not found. Install from https://cli.github.com');
+        }
+      });
 
-      // ── Copy adapter to a temp branch and open PR ─────────────────────────
-      console.log(pc.bold('\n🚀 Preparing registry submission…\n'));
+      // ── Submission instructions ────────────────────────────────────────────
+      section('Registry submission');
 
-      // For the MVP, print instructions for manual PR creation.
-      // Full implementation would clone the registry, copy the adapter, and open a PR.
-      console.log(`To submit "${manifest.id}" to the registry:\n`);
-      console.log(`  1. Fork https://github.com/civic-mcp/civic-mcp`);
-      console.log(`  2. Copy your adapter to: adapters/${manifest.id}/`);
-      console.log(`  3. Run: npm run registry:update`);
-      console.log(`  4. Open a PR with the title: "Add adapter: ${manifest.name} v${manifest.version}"\n`);
-      console.log(pc.cyan(`Adapter: ${manifest.id} v${manifest.version} (${manifest.trustLevel})\n`));
-      console.log(pc.yellow('Automated PR submission coming in a future release.\n'));
+      console.log(
+        `  ${SYMBOLS.info} ${chalk.bold(manifest.id)} ${chalk.dim(`v${manifest.version}`)} ${chalk.dim(`(${manifest.trustLevel})`)}\n`,
+      );
+      console.log(`  ${chalk.dim('Automated PR submission is coming in a future release.')}`);
+      console.log(`  ${chalk.dim('For now, submit your adapter manually:')}\n`);
+
+      warn('Manual submission required');
+
+      nextSteps([
+        { cmd: 'Fork https://github.com/civic-mcp/civic-mcp', desc: 'fork the registry repo' },
+        { cmd: `cp -r . adapters/${manifest.id}/`, desc: 'copy your adapter' },
+        { cmd: 'npm run registry:update', desc: 'regenerate registry.json' },
+        {
+          cmd: `gh pr create --title "Add adapter: ${manifest.name} v${manifest.version}"`,
+          desc: 'open the pull request',
+        },
+      ]);
     });
 
   return cmd;

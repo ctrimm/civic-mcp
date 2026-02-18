@@ -12,7 +12,8 @@ import { Command } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import pc from 'picocolors';
+import chalk from 'chalk';
+import { fatal, success, warn, nextSteps, withSpinner, SYMBOLS } from '../ui.js';
 
 const DEV_LINKS_FILE = path.join(os.homedir(), '.civic-mcp', 'dev-links.json');
 
@@ -34,8 +35,7 @@ export function linkCommand(): Command {
       const manifestPath = path.join(dir, 'manifest.json');
 
       if (!fs.existsSync(manifestPath)) {
-        console.error(pc.red(`No manifest.json found in: ${dir}`));
-        process.exit(1);
+        fatal(`No manifest.json found in: ${dir}`);
       }
 
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as { id: string };
@@ -49,11 +49,13 @@ export function linkCommand(): Command {
         const before = links.length;
         const filtered = links.filter((l) => l.id !== manifest.id);
         if (filtered.length === before) {
-          console.warn(pc.yellow(`Adapter "${manifest.id}" was not linked.`));
+          warn(`Adapter "${manifest.id}" was not linked.`);
         } else {
-          fs.mkdirSync(path.dirname(DEV_LINKS_FILE), { recursive: true });
-          fs.writeFileSync(DEV_LINKS_FILE, JSON.stringify(filtered, null, 2) + '\n');
-          console.log(pc.green(`✅ Unlinked "${manifest.id}"`));
+          await withSpinner(`Unlinking ${chalk.cyan(manifest.id)}…`, async () => {
+            fs.mkdirSync(path.dirname(DEV_LINKS_FILE), { recursive: true });
+            fs.writeFileSync(DEV_LINKS_FILE, JSON.stringify(filtered, null, 2) + '\n');
+          });
+          success(`Unlinked "${chalk.cyan(manifest.id)}"`);
         }
         return;
       }
@@ -73,12 +75,20 @@ export function linkCommand(): Command {
         links.push(link);
       }
 
-      fs.mkdirSync(path.dirname(DEV_LINKS_FILE), { recursive: true });
-      fs.writeFileSync(DEV_LINKS_FILE, JSON.stringify(links, null, 2) + '\n');
+      await withSpinner(`Linking ${chalk.cyan(manifest.id)}…`, async () => {
+        fs.mkdirSync(path.dirname(DEV_LINKS_FILE), { recursive: true });
+        fs.writeFileSync(DEV_LINKS_FILE, JSON.stringify(links, null, 2) + '\n');
+      });
 
-      console.log(pc.green(`\n✅ Linked "${manifest.id}"`));
-      console.log(`\n  Dev links file: ${DEV_LINKS_FILE}`);
-      console.log(`\n  Reload your dev extension in Chrome to pick up changes.\n`);
+      success(`Linked ${chalk.cyan(manifest.id)}`);
+      console.log(`\n  ${SYMBOLS.arrow} Dev links file: ${chalk.dim(DEV_LINKS_FILE)}`);
+
+      nextSteps([
+        {
+          cmd: 'chrome://extensions',
+          desc: 'open Extensions, find civic-mcp, and click Reload',
+        },
+      ]);
     });
 
   return cmd;

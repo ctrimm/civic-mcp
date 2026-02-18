@@ -4,6 +4,7 @@
  */
 
 import { Command } from 'commander';
+import { banner } from './ui.js';
 import { createCommand } from './commands/create.js';
 import { validateCommand } from './commands/validate.js';
 import { testCommand } from './commands/test.js';
@@ -16,7 +17,14 @@ const program = new Command();
 program
   .name('civic-mcp')
   .description('CLI for civic-mcp adapter development and publishing')
-  .version('0.1.0');
+  .version('0.1.0')
+  .hook('preAction', (_thisCommand, actionCommand) => {
+    // Show banner for top-level commands; suppress for --version / --help.
+    const name = actionCommand.name();
+    if (!['help'].includes(name)) {
+      banner();
+    }
+  });
 
 program.addCommand(createCommand());
 program.addCommand(validateCommand());
