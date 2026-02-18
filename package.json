@@ -34,7 +34,8 @@
   },
   "workspaces": [
     "packages/*",
-    "adapters/*"
+    "adapters/*",
+    "website"
   ],
   "scripts": {
     "build": "npm run build --workspaces",
@@ -44,8 +45,10 @@
     "format": "prettier --write packages/ adapters/",
     "validate:adapters": "node packages/cli/bin/civic-mcp validate adapters/",
     "dev": "npm run dev -w packages/extension",
+    "dev:website": "npm run dev -w @civic-mcp/website",
     "build:extension": "npm run build -w packages/extension",
     "build:cli": "npm run build -w packages/cli",
+    "build:website": "npm run build -w @civic-mcp/website",
     "registry:update": "node scripts/update-registry.js",
     "prepare": "husky install"
   },
