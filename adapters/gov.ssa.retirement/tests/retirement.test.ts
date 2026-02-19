@@ -43,6 +43,8 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
     { timeout: 45_000 },
     async () => {
       const result = await harness.testTool('estimate_retirement_benefit', {
+        birthMonth:            3,
+        birthDay:              22,
         birthYear:             1975,
         currentAnnualEarnings: 65_000,
         dollarType:            'today',
@@ -56,6 +58,8 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
         expect(est).toHaveProperty('atAge70');
         expect(result.data['fullRetirementAge']).toBe('67'); // born 1975
         expect(result.data['dollarType']).toBe('today');
+        expect(result.data['birthMonth']).toBe(3);
+        expect(result.data['birthDay']).toBe(22);
       }
     },
   );
@@ -65,6 +69,8 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
     { timeout: 45_000 },
     async () => {
       const result = await harness.testTool('estimate_retirement_benefit', {
+        birthMonth:            3,
+        birthDay:              22,
         birthYear:             1975,
         currentAnnualEarnings: 65_000,
         dollarType:            'future',
@@ -85,7 +91,7 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
     'future-dollar estimates are larger than today\'s-dollar estimates',
     { timeout: 90_000 },
     async () => {
-      const sharedParams = { birthYear: 1975, currentAnnualEarnings: 65_000 };
+      const sharedParams = { birthMonth: 3, birthDay: 22, birthYear: 1975, currentAnnualEarnings: 65_000 };
 
       const [todayResult, futureResult] = await Promise.all([
         harness.testTool('estimate_retirement_benefit', { ...sharedParams, dollarType: 'today' }),
@@ -115,6 +121,8 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
     { timeout: 45_000 },
     async () => {
       const result = await harness.testTool('estimate_retirement_benefit', {
+        birthMonth:            7,
+        birthDay:              4,
         birthYear:             1968,
         currentAnnualEarnings: 80_000,
         dollarType:            'today',
@@ -131,18 +139,20 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
   );
 
   it(
-    'defaults dollarType to "today" when omitted',
+    'defaults dollarType to "today" and birth date to Jun 15 when omitted',
     { timeout: 45_000 },
     async () => {
       const result = await harness.testTool('estimate_retirement_benefit', {
         birthYear:             1970,
         currentAnnualEarnings: 55_000,
-        // dollarType intentionally omitted
+        // dollarType, birthMonth, birthDay intentionally omitted
       });
 
       expect(result).toBeToolSuccess();
       if (result.success) {
         expect(result.data['dollarType']).toBe('today');
+        expect(result.data['birthMonth']).toBe(6);
+        expect(result.data['birthDay']).toBe(15);
       }
     },
   );
@@ -151,7 +161,11 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
     'caches repeat requests (second call is faster)',
     { timeout: 60_000 },
     async () => {
-      const params = { birthYear: 1970, currentAnnualEarnings: 55_000, dollarType: 'today' as const };
+      const params = {
+        birthMonth: 9, birthDay: 1,
+        birthYear: 1970, currentAnnualEarnings: 55_000,
+        dollarType: 'today' as const,
+      };
 
       const t0 = Date.now();
       const first = await harness.testTool('estimate_retirement_benefit', params);
@@ -174,7 +188,25 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
   );
 
   it(
-    'handles minimum income (zero earnings)',
+    'handles retired worker with last-year earnings specified',
+    { timeout: 45_000 },
+    async () => {
+      const result = await harness.testTool('estimate_retirement_benefit', {
+        birthMonth:             6,
+        birthDay:               1,
+        birthYear:              1960,
+        currentAnnualEarnings:  0,          // retired
+        lastYearWithEarnings:   2023,
+        lastYearEarningsAmount: 72_000,
+        dollarType:             'today',
+      });
+      // Should succeed or return a graceful error — not crash
+      expect(result).toHaveProperty('success');
+    },
+  );
+
+  it(
+    'handles zero earnings with no last-year info (fully graceful)',
     { timeout: 45_000 },
     async () => {
       const result = await harness.testTool('estimate_retirement_benefit', {
@@ -182,7 +214,6 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
         currentAnnualEarnings: 0,
         dollarType:            'today',
       });
-      // Should succeed or return a graceful error — not crash
       expect(result).toHaveProperty('success');
     },
   );

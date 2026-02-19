@@ -61,6 +61,18 @@ const adapter: AdapterModule = {
       inputSchema: {
         type: 'object',
         properties: {
+          birthMonth: {
+            type: 'number',
+            description: 'Birth month as a number 1–12 (e.g. 3 for March). Defaults to 6.',
+            minimum: 1,
+            maximum: 12,
+          },
+          birthDay: {
+            type: 'number',
+            description: 'Birth day of the month 1–31. Defaults to 15.',
+            minimum: 1,
+            maximum: 31,
+          },
           birthYear: {
             type: 'number',
             description: 'Four-digit birth year (e.g. 1965)',
@@ -69,19 +81,34 @@ const adapter: AdapterModule = {
           },
           currentAnnualEarnings: {
             type: 'number',
-            description: 'Current (or most recent) annual earnings in dollars before taxes',
+            description: 'Current (or most recent) annual earnings in dollars covered by Social Security, before taxes. Use 0 if retired.',
             minimum: 0,
+          },
+          lastYearWithEarnings: {
+            type: 'number',
+            description: 'If currentAnnualEarnings is 0 (retired), the last calendar year in which you had Social Security-covered earnings.',
+          },
+          lastYearEarningsAmount: {
+            type: 'number',
+            description: 'If currentAnnualEarnings is 0 (retired), the dollar amount of covered earnings in that last year.',
+            minimum: 0,
+          },
+          plannedRetirementMonth: {
+            type: 'number',
+            description: 'Month (1–12) you plan to stop working. Must be provided alongside plannedRetirementYear.',
+            minimum: 1,
+            maximum: 12,
           },
           plannedRetirementYear: {
             type: 'number',
-            description: 'Year you plan to stop working (defaults to age-62 year if omitted)',
+            description: 'Year you plan to stop working. If omitted, the calculator shows estimates at ages 62, FRA, and 70.',
           },
           dollarType: {
             type: 'string',
             enum: ['today', 'future'],
             description:
               'Whether to show benefit estimates in today\'s dollars (purchasing power) or ' +
-              'future (inflated) dollars — the actual dollar amount you would receive. ' +
+              'future (inflated) dollars — the nominal amount you would actually receive. ' +
               'Defaults to "today".',
           },
         },
@@ -90,8 +117,13 @@ const adapter: AdapterModule = {
 
       async execute(
         params: {
+          birthMonth?: number;
+          birthDay?: number;
           birthYear: number;
           currentAnnualEarnings: number;
+          lastYearWithEarnings?: number;
+          lastYearEarningsAmount?: number;
+          plannedRetirementMonth?: number;
           plannedRetirementYear?: number;
           dollarType?: 'today' | 'future';
         },
@@ -99,10 +131,21 @@ const adapter: AdapterModule = {
       ): Promise<ToolResult> {
         const { page, storage, notify } = context;
         const dollarType = params.dollarType ?? 'today';
+        const birthMonth = params.birthMonth ?? 6;
+        const birthDay   = params.birthDay   ?? 15;
 
         try {
-          // Cache keyed by inputs — estimates don't change often
-          const cacheKey = `estimate:${params.birthYear}:${params.currentAnnualEarnings}:${params.plannedRetirementYear ?? ''}:${dollarType}`;
+          // Cache keyed by all inputs — estimates don't change often
+          const cacheKey = [
+            'estimate',
+            params.birthYear, birthMonth, birthDay,
+            params.currentAnnualEarnings,
+            params.lastYearWithEarnings ?? '',
+            params.lastYearEarningsAmount ?? '',
+            params.plannedRetirementMonth ?? '',
+            params.plannedRetirementYear ?? '',
+            dollarType,
+          ].join(':');
           const cached = await storage.get<{ data: unknown; at: string }>(cacheKey);
           if (cached) {
             const ageHours = (Date.now() - new Date(cached.at).getTime()) / 3_600_000;
@@ -112,15 +155,14 @@ const adapter: AdapterModule = {
           notify.info('Loading SSA Quick Calculator…');
 
           await page.navigate('https://www.ssa.gov/OACT/quickcalc/', {
-            waitForSelector: 'input#dobElem, input[name="dobElem"], form',
+            waitForSelector: 'input#month, input[name="dobmon"]',
             timeout: 20_000,
           });
 
-          // Birth year (the calculator uses a single year field, not full DOB)
-          await page.fillField(
-            'input#dobElem, input[name="dobElem"], input[name="born"]',
-            String(params.birthYear),
-          );
+          // Date of birth — three separate text inputs
+          await page.fillField('input#month, input[name="dobmon"]', String(birthMonth));
+          await page.fillField('input#day,   input[name="dobday"]', String(birthDay));
+          await page.fillField('input#year,  input[name="yob"]',    String(params.birthYear));
 
           // Current earnings
           await page.fillField(
@@ -128,29 +170,45 @@ const adapter: AdapterModule = {
             String(params.currentAnnualEarnings),
           );
 
-          // Planned retirement year (optional)
-          if (params.plannedRetirementYear) {
-            const hasRetireField = await page.exists('input#retireYear, input[name="retireYear"]');
-            if (hasRetireField) {
+          // Zero-earnings (retired) — fill last year / last amount if provided
+          if (params.currentAnnualEarnings === 0 && params.lastYearWithEarnings) {
+            await page.fillField(
+              'input#lastyear, input[name="lastYearEarn"]',
+              String(params.lastYearWithEarnings),
+            );
+            if (params.lastYearEarningsAmount !== undefined) {
               await page.fillField(
-                'input#retireYear, input[name="retireYear"]',
-                String(params.plannedRetirementYear),
+                'input#lastearnings, input[name="lastEarn"]',
+                String(params.lastYearEarningsAmount),
               );
             }
           }
 
-          // Dollar type — today's vs future (inflated) dollars
-          const dollarRadioSelector = dollarType === 'future'
-            ? "input[name='inflatedDollars'][value='1'], input[name='dollars'][value='1'], #inflatedDollars"
-            : "input[name='inflatedDollars'][value='0'], input[name='dollars'][value='0'], #todaysDollars";
-          const hasDollarRadio = await page.exists(dollarRadioSelector);
-          if (hasDollarRadio) {
-            await page.click(dollarRadioSelector, { waitForNavigation: false });
+          // Planned retirement date — requires both month and year
+          if (params.plannedRetirementYear) {
+            await page.fillField(
+              'input#retiremonth, input[name="retiremonth"]',
+              String(params.plannedRetirementMonth ?? birthMonth),
+            );
+            await page.fillField(
+              'input#retireyear, input[name="retireyear"]',
+              String(params.plannedRetirementYear),
+            );
           }
+
+          // Dollar type radio — today's dollars: value="1" (#constant, checked by default)
+          //                     inflated dollars: value="0" (#nominal)
+          if (dollarType === 'future') {
+            await page.click(
+              'input#nominal, input[name="dollars"][value="0"]',
+              { waitForNavigation: false },
+            );
+          }
+          // No click needed for 'today' — it is checked by default
 
           // Submit
           await page.click(
-            'input[type="submit"], button[value="Calculate"], button[type="submit"]',
+            'input[type="submit"][value="Submit request"]',
             { waitForNavigation: false },
           );
 
@@ -161,9 +219,9 @@ const adapter: AdapterModule = {
           );
 
           // Extract benefit estimates
-          const at62  = await page.getText('td#age62,  tr:nth-child(1) td.amount, td.age62');
-          const atFRA = await page.getText('td#fra,    tr:nth-child(2) td.amount, td.fra');
-          const at70  = await page.getText('td#age70,  tr:nth-child(3) td.amount, td.age70');
+          const at62  = await page.getText('td#age62, tr:nth-child(1) td:nth-child(2)');
+          const atFRA = await page.getText('td#fra,   tr:nth-child(2) td:nth-child(2)');
+          const at70  = await page.getText('td#age70, tr:nth-child(3) td:nth-child(2)');
 
           const fra = fullRetirementAge(params.birthYear);
           const data = {
@@ -173,7 +231,9 @@ const adapter: AdapterModule = {
               atAge70:             parseDollar(at70),
             },
             fullRetirementAge: fra,
-            birthYear: params.birthYear,
+            birthYear:  params.birthYear,
+            birthMonth,
+            birthDay,
             dollarType,
             note: dollarType === 'future'
               ? 'Estimates are in future (inflated) dollars — the nominal amount you would receive at retirement. ' +
