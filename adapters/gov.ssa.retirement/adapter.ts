@@ -212,16 +212,16 @@ const adapter: AdapterModule = {
             { waitForNavigation: false },
           );
 
-          // Wait for results table
+          // Wait for results table — SSA uses summary="benefits" on the estimate table
           await page.waitForSelector(
-            'table.Results, table#Results, #resultTable, .result',
+            "table[summary='benefits']",
             { timeout: 15_000 },
           );
 
-          // Extract benefit estimates
-          const at62  = await page.getText('td#age62, tr:nth-child(1) td:nth-child(2)');
-          const atFRA = await page.getText('td#fra,   tr:nth-child(2) td:nth-child(2)');
-          const at70  = await page.getText('td#age70, tr:nth-child(3) td:nth-child(2)');
+          // Extract benefit estimates — IDs verified against live HTML 2026-02-19
+          const at62  = await page.getText('td#est_early');
+          const atFRA = await page.getText('td#est_fra');
+          const at70  = await page.getText('td#est_late');
 
           const fra = fullRetirementAge(params.birthYear);
           const data = {

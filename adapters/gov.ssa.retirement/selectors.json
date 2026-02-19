@@ -22,10 +22,11 @@
 
     "submitBtn":     "input[type='submit'][value='Submit request']",
 
-    "resultTable":   "table.Results, table#Results, #resultTable",
-    "benefitAge62":  "td#age62, tr:nth-child(1) td:nth-child(2)",
-    "benefitFRA":    "td#fra,   tr:nth-child(2) td:nth-child(2)",
-    "benefitAge70":  "td#age70, tr:nth-child(3) td:nth-child(2)"
+    "_comment_results": "Results page — IDs verified 2026-02-19 against live HTML",
+    "resultTable":   "table[summary='benefits']",
+    "benefitAge62":  "td#est_early",
+    "benefitFRA":    "td#est_fra",
+    "benefitAge70":  "td#est_late"
   },
 
   "retirement_application": {
