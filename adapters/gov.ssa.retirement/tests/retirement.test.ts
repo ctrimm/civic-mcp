@@ -5,14 +5,14 @@
  * Running modes
  * ─────────────
  * Headless (default / CI):
- *   pnpm --filter @civic-mcp/testing exec vitest run adapters/gov.ssa.retirement
+ *   pnpm exec vitest run adapters/gov.ssa.retirement
  *
  *   • estimate_retirement_benefit runs fully automatically.
  *   • start_retirement_application is skipped — it calls waitForHuman() which
  *     throws HumanRequiredError in headless mode.
  *
  * Headed (demo / manual):
- *   CIVIC_MCP_HEADED=1 pnpm --filter @civic-mcp/testing exec vitest run adapters/gov.ssa.retirement
+ *   CIVIC_MCP_HEADED=1 pnpm exec vitest run adapters/gov.ssa.retirement
  *
  *   • Both tools run. When the application hits the reCAPTCHA step the
  *     terminal prints the prompt and waits for you to press Enter after
@@ -39,12 +39,13 @@ afterAll(() => harness.close());
 
 describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
   it(
-    'returns benefit estimates for a mid-career worker',
+    'returns benefit estimates in today\'s dollars for a mid-career worker',
     { timeout: 45_000 },
     async () => {
       const result = await harness.testTool('estimate_retirement_benefit', {
-        birthYear:              1975,
-        currentAnnualEarnings:  65_000,
+        birthYear:             1975,
+        currentAnnualEarnings: 65_000,
+        dollarType:            'today',
       });
 
       expect(result).toBeToolSuccess();
@@ -54,6 +55,57 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
         expect(est).toHaveProperty('atFullRetirementAge');
         expect(est).toHaveProperty('atAge70');
         expect(result.data['fullRetirementAge']).toBe('67'); // born 1975
+        expect(result.data['dollarType']).toBe('today');
+      }
+    },
+  );
+
+  it(
+    'returns benefit estimates in future (inflated) dollars',
+    { timeout: 45_000 },
+    async () => {
+      const result = await harness.testTool('estimate_retirement_benefit', {
+        birthYear:             1975,
+        currentAnnualEarnings: 65_000,
+        dollarType:            'future',
+      });
+
+      expect(result).toBeToolSuccess();
+      if (result.success) {
+        const est = result.data['estimatedMonthlyBenefit'] as Record<string, number | null>;
+        expect(est).toHaveProperty('atAge62');
+        expect(est).toHaveProperty('atFullRetirementAge');
+        expect(est).toHaveProperty('atAge70');
+        expect(result.data['dollarType']).toBe('future');
+      }
+    },
+  );
+
+  it(
+    'future-dollar estimates are larger than today\'s-dollar estimates',
+    { timeout: 90_000 },
+    async () => {
+      const sharedParams = { birthYear: 1975, currentAnnualEarnings: 65_000 };
+
+      const [todayResult, futureResult] = await Promise.all([
+        harness.testTool('estimate_retirement_benefit', { ...sharedParams, dollarType: 'today' }),
+        harness.testTool('estimate_retirement_benefit', { ...sharedParams, dollarType: 'future' }),
+      ]);
+
+      expect(todayResult).toBeToolSuccess();
+      expect(futureResult).toBeToolSuccess();
+
+      if (todayResult.success && futureResult.success) {
+        const today  = todayResult.data['estimatedMonthlyBenefit']  as Record<string, number | null>;
+        const future = futureResult.data['estimatedMonthlyBenefit'] as Record<string, number | null>;
+
+        // Inflation-adjusted (future) dollars should exceed today's-dollar figures
+        // for every retirement age where both values are present.
+        for (const key of ['atAge62', 'atFullRetirementAge', 'atAge70'] as const) {
+          if (today[key] !== null && future[key] !== null) {
+            expect(future[key]).toBeGreaterThan(today[key]!);
+          }
+        }
       }
     },
   );
@@ -65,6 +117,7 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
       const result = await harness.testTool('estimate_retirement_benefit', {
         birthYear:             1968,
         currentAnnualEarnings: 80_000,
+        dollarType:            'today',
       });
 
       expect(result).toBeToolSuccess();
@@ -78,10 +131,27 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
   );
 
   it(
+    'defaults dollarType to "today" when omitted',
+    { timeout: 45_000 },
+    async () => {
+      const result = await harness.testTool('estimate_retirement_benefit', {
+        birthYear:             1970,
+        currentAnnualEarnings: 55_000,
+        // dollarType intentionally omitted
+      });
+
+      expect(result).toBeToolSuccess();
+      if (result.success) {
+        expect(result.data['dollarType']).toBe('today');
+      }
+    },
+  );
+
+  it(
     'caches repeat requests (second call is faster)',
     { timeout: 60_000 },
     async () => {
-      const params = { birthYear: 1970, currentAnnualEarnings: 55_000 };
+      const params = { birthYear: 1970, currentAnnualEarnings: 55_000, dollarType: 'today' as const };
 
       const t0 = Date.now();
       const first = await harness.testTool('estimate_retirement_benefit', params);
@@ -96,6 +166,7 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
 
       if (first.success && second.success) {
         expect(first.data['birthYear']).toBe(second.data['birthYear']);
+        expect(first.data['dollarType']).toBe(second.data['dollarType']);
         // Cached call should be substantially faster
         expect(secondMs).toBeLessThan(firstMs * 0.5);
       }
@@ -109,6 +180,7 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
       const result = await harness.testTool('estimate_retirement_benefit', {
         birthYear:             1960,
         currentAnnualEarnings: 0,
+        dollarType:            'today',
       });
       // Should succeed or return a graceful error — not crash
       expect(result).toHaveProperty('success');

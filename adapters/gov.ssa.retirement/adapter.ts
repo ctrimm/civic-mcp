@@ -76,6 +76,14 @@ const adapter: AdapterModule = {
             type: 'number',
             description: 'Year you plan to stop working (defaults to age-62 year if omitted)',
           },
+          dollarType: {
+            type: 'string',
+            enum: ['today', 'future'],
+            description:
+              'Whether to show benefit estimates in today\'s dollars (purchasing power) or ' +
+              'future (inflated) dollars — the actual dollar amount you would receive. ' +
+              'Defaults to "today".',
+          },
         },
         required: ['birthYear', 'currentAnnualEarnings'],
       },
@@ -85,14 +93,16 @@ const adapter: AdapterModule = {
           birthYear: number;
           currentAnnualEarnings: number;
           plannedRetirementYear?: number;
+          dollarType?: 'today' | 'future';
         },
         context: SandboxContext,
       ): Promise<ToolResult> {
         const { page, storage, notify } = context;
+        const dollarType = params.dollarType ?? 'today';
 
         try {
           // Cache keyed by inputs — estimates don't change often
-          const cacheKey = `estimate:${params.birthYear}:${params.currentAnnualEarnings}:${params.plannedRetirementYear ?? ''}`;
+          const cacheKey = `estimate:${params.birthYear}:${params.currentAnnualEarnings}:${params.plannedRetirementYear ?? ''}:${dollarType}`;
           const cached = await storage.get<{ data: unknown; at: string }>(cacheKey);
           if (cached) {
             const ageHours = (Date.now() - new Date(cached.at).getTime()) / 3_600_000;
@@ -129,6 +139,15 @@ const adapter: AdapterModule = {
             }
           }
 
+          // Dollar type — today's vs future (inflated) dollars
+          const dollarRadioSelector = dollarType === 'future'
+            ? "input[name='inflatedDollars'][value='1'], input[name='dollars'][value='1'], #inflatedDollars"
+            : "input[name='inflatedDollars'][value='0'], input[name='dollars'][value='0'], #todaysDollars";
+          const hasDollarRadio = await page.exists(dollarRadioSelector);
+          if (hasDollarRadio) {
+            await page.click(dollarRadioSelector, { waitForNavigation: false });
+          }
+
           // Submit
           await page.click(
             'input[type="submit"], button[value="Calculate"], button[type="submit"]',
@@ -155,7 +174,12 @@ const adapter: AdapterModule = {
             },
             fullRetirementAge: fra,
             birthYear: params.birthYear,
-            note: 'Estimates are in today\'s dollars and assume your earnings continue at the rate you provided.',
+            dollarType,
+            note: dollarType === 'future'
+              ? 'Estimates are in future (inflated) dollars — the nominal amount you would receive at retirement. ' +
+                'Assumes earnings continue at the rate provided.'
+              : 'Estimates are in today\'s dollars (constant purchasing power). ' +
+                'Assumes earnings continue at the rate provided.',
             source: 'SSA Quick Calculator — https://www.ssa.gov/OACT/quickcalc/',
           };
 

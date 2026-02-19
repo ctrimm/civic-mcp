@@ -5,6 +5,8 @@
     "dobYear":       "input#dobElem, input[name='dobElem'], input[name='born']",
     "earningsNow":   "input#earnings, input[name='earnings']",
     "retireYear":    "input#retireYear, input[name='retireYear']",
+    "dollarTypeToday":   "input[name='inflatedDollars'][value='0'], input[name='dollars'][value='0'], #todaysDollars",
+    "dollarTypeFuture":  "input[name='inflatedDollars'][value='1'], input[name='dollars'][value='1'], #inflatedDollars",
     "submitBtn":     "input[type='submit'], button[value='Calculate']",
     "resultTable":   "table.Results, table#Results, #resultTable",
     "benefitAge62":  "td#age62, tr:nth-child(1) td:nth-child(2)",
