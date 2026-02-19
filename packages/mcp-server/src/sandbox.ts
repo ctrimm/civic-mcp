@@ -46,7 +46,7 @@ async function ensureStorageDir() {
 
 function storageFile(adapterId: string): string {
   // Sanitise id — only allow alphanumeric, dots, and hyphens
-  const safe = adapterId.replace(/[^a-zA-Z0-9.\-]/g, '_');
+  const safe = adapterId.replace(/[^a-zA-Z0-9.-]/g, '_');
   return join(STORAGE_ROOT, `${safe}.json`);
 }
 
