@@ -107,6 +107,10 @@ export const matchers = {
   },
 };
 
+// Bring vitest into the compilation so the module augmentation below is valid.
+// This import is type-only and erased at compile time.
+import type {} from 'vitest';
+
 // Auto-extend vitest expect if called as a side-effect import
 declare module 'vitest' {
   interface Assertion {
