@@ -212,11 +212,29 @@ const adapter: AdapterModule = {
             { waitForNavigation: false },
           );
 
-          // Wait for results table — SSA uses summary="benefits" on the estimate table
+          // Wait for the results page to settle — the outer layout table is present
+          // on every response page (both success and error), so this never times out
+          // on a valid response.
           await page.waitForSelector(
-            "table[summary='benefits']",
+            "table[summary='formatting']",
             { timeout: 15_000 },
           );
+
+          // The benefit table is absent when the worker has insufficient credits
+          // (e.g. 0 earnings → 0 credits). Detect this early instead of timing out.
+          const hasResults = await page.exists("table[summary='benefits']");
+          if (!hasResults) {
+            const errText = await page.getText('p');
+            const code = errText?.toLowerCase().includes('insufficient')
+              ? 'INSUFFICIENT_CREDITS'
+              : 'NO_RESULTS';
+            return {
+              success: false,
+              error: errText?.trim()
+                ?? 'SSA calculator did not return benefit estimates — the worker may have insufficient credits.',
+              code,
+            };
+          }
 
           // Extract benefit estimates — IDs verified against live HTML 2026-02-19
           const at62  = await page.getText('td#est_early');
