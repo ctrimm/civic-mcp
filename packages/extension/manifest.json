@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Civic-MCP — AI Tools for Government Services",
+  "short_name": "Civic-MCP",
+  "version": "0.1.0",
+  "description": "Install government site adapters so AI agents can help navigate forms, check eligibility, and submit applications.",
+  "icons": {
+    "16": "src/assets/icon-16.png",
+    "32": "src/assets/icon-32.png",
+    "48": "src/assets/icon-48.png",
+    "128": "src/assets/icon-128.png"
+  },
+  "action": {
+    "default_popup": "src/ui/popup/index.html",
+    "default_icon": {
+      "16": "src/assets/icon-16.png",
+      "32": "src/assets/icon-32.png"
+    },
+    "default_title": "Civic-MCP"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/index.ts"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://*/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/ui/marketplace/index.html",
+        "src/ui/settings/index.html"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-02-17T00:00:00Z",
+  "publishers": [
+    {
+      "name": "Nava PBC",
+      "url": "https://navapbc.com",
+      "signingKey": "nava-pbc",
+      "verifiedAt": "2026-02-17T00:00:00Z",
+      "type": "civic_tech"
+    },
+    {
+      "name": "Code for America",
+      "url": "https://codeforamerica.org",
+      "signingKey": "code-for-america",
+      "verifiedAt": "2026-02-17T00:00:00Z",
+      "type": "nonprofit"
+    },
+    {
+      "name": "U.S. Digital Service",
+      "url": "https://usds.gov",
+      "signingKey": "usds",
+      "verifiedAt": "2026-02-17T00:00:00Z",
+      "type": "government"
+    }
+  ]
+}

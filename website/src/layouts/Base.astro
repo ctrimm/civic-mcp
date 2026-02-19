@@ -1,0 +1,130 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Civic-MCP — Adapter Marketplace',
+  description = 'Discover and install open-source AI tools for government services, built on the WebMCP standard.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <slot />
+
+    <footer>
+      <div class="container">
+        <span class="pill">civic-mcp</span>
+        <span class="footer-sep">—</span>
+        <span class="footer-links">
+          <a href="https://github.com/civic-mcp/civic-mcp" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/civic-mcp/civic-mcp/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contribute</a>
+          <a href="https://github.com/civic-mcp/civic-mcp/blob/main/DESIGN.md" target="_blank" rel="noopener">Design</a>
+        </span>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  /* ── Reset & base ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:        #06b6d4;
+    --cyan-dark:   #0891b2;
+    --cyan-light:  #ecfeff;
+    --cyan-border: #a5f3fc;
+    --green:       #16a34a;
+    --green-light: #dcfce7;
+    --gray-50:     #f9fafb;
+    --gray-100:    #f3f4f6;
+    --gray-200:    #e5e7eb;
+    --gray-400:    #9ca3af;
+    --gray-500:    #6b7280;
+    --gray-700:    #374151;
+    --gray-900:    #111827;
+    --text:        var(--gray-900);
+    --text-muted:  var(--gray-500);
+    --border:      var(--gray-200);
+    --bg:          #ffffff;
+    --radius-sm:   4px;
+    --radius:      8px;
+    --radius-lg:   12px;
+    --shadow-sm:   0 1px 2px rgba(0,0,0,.06);
+    --shadow:      0 2px 8px rgba(0,0,0,.08);
+    --shadow-md:   0 4px 16px rgba(0,0,0,.1);
+  }
+
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  a { color: var(--cyan-dark); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Shared ───────────────────────────────────────────── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+
+  /* The brand pill — matches CLI ui.ts */
+  .pill {
+    display: inline-block;
+    background: var(--cyan);
+    color: #000;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    padding: .15em .55em;
+    border-radius: var(--radius-sm);
+    vertical-align: middle;
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+  }
+
+  /* ── Footer ───────────────────────────────────────────── */
+  footer {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    padding: 1.25rem 0;
+    font-size: .875rem;
+    color: var(--text-muted);
+  }
+
+  footer .container {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-sep { color: var(--gray-400); }
+
+  .footer-links {
+    display: flex;
+    gap: 1.25rem;
+  }
+
+  .footer-links a { color: var(--text-muted); }
+  .footer-links a:hover { color: var(--cyan-dark); }
+</style>

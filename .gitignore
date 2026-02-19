@@ -62,9 +62,9 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# Package manager lockfiles (use npm workspaces, commit package-lock.json at root)
+# Alternate package manager lockfiles (this repo uses pnpm; pnpm-lock.yaml is committed)
 yarn.lock
-pnpm-lock.yaml
+package-lock.json
 
 # Temporary files
 tmp/

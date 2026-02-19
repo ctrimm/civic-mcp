@@ -1,0 +1,33 @@
+{
+  "_note": "Selectors for newmibridges.michigan.gov (Angular SPA). Last verified 2026-02-17. Add 500ms sleep after navigation for Angular hydration.",
+  "screener": {
+    "form": "form, [class*='screener'], [data-testid='screener-form'], .slds-form",
+    "householdSize": "input[name='householdSize'], input[id*='household'], input[placeholder*='household']",
+    "monthlyIncome": "input[name='monthlyIncome'], input[id*='income'], input[placeholder*='income']",
+    "county": "select[name='county'], select[id*='county']",
+    "hasChildren": "input[name='hasChildren'], input[value='children']",
+    "hasDisability": "input[name='hasDisability'], input[value='disability']",
+    "submit": "button[type='submit'], [data-testid='submit'], .submit-btn",
+    "results": ".results, [data-testid='results'], [class*='results']",
+    "snapResult": "[data-program='FAP'] .result, [data-program='SNAP'] .result, .snap-result",
+    "medicaidResult": "[data-program='Medicaid'] .result, [data-program='MA'] .result",
+    "cashResult": "[data-program='FIP'] .result, [data-program='Cash'] .result",
+    "overallMessage": ".overall-result, .results-summary, [data-testid='summary']"
+  },
+  "application": {
+    "form": "form, .application-start, [data-testid='apply-form']",
+    "loginIndicator": "[class*='login'], [id*='login'], .login-form",
+    "firstName": "input[name='firstName'], input[id*='firstName']",
+    "lastName": "input[name='lastName'], input[id*='lastName']",
+    "dateOfBirth": "input[name='dateOfBirth'], input[id*='dob']",
+    "submit": "button[type='submit']",
+    "confirmation": ".confirmation, [data-testid='confirmation']",
+    "applicationId": ".application-number, [data-testid='app-id']"
+  },
+  "status": {
+    "list": ".applications, [data-testid='apps-list']",
+    "loginIndicator": "[class*='login'], .login-form",
+    "status": ".status, [data-testid='app-status']",
+    "lastUpdated": ".last-updated, [data-testid='updated']"
+  }
+}

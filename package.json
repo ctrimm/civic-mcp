@@ -28,24 +28,26 @@
     "accessibility",
     "public-interest"
   ],
+  "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "pnpm": ">=9.0.0"
   },
-  "workspaces": [
-    "packages/*",
-    "adapters/*"
-  ],
   "scripts": {
-    "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces",
-    "lint": "eslint packages/ adapters/ --ext .js,.ts",
-    "lint:fix": "eslint packages/ adapters/ --ext .js,.ts --fix",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "eslint packages/ adapters/ --ext .js,.ts,.tsx --ignore-pattern '**/dist/**'",
+    "lint:fix": "eslint packages/ adapters/ --ext .js,.ts,.tsx --ignore-pattern '**/dist/**' --fix",
     "format": "prettier --write packages/ adapters/",
-    "validate:adapters": "node packages/cli/bin/civic-mcp validate adapters/",
-    "dev": "npm run dev -w packages/extension",
-    "build:extension": "npm run build -w packages/extension",
-    "build:cli": "npm run build -w packages/cli",
+    "validate:adapters": "for dir in adapters/*/; do node packages/cli/bin/civic-mcp validate \"$dir\" || exit 1; done",
+    "generate:icons": "node scripts/generate-icons.mjs",
+    "dev": "pnpm --filter @civic-mcp/extension run dev",
+    "dev:website": "pnpm --filter @civic-mcp/website run dev",
+    "build:extension": "pnpm --filter '@civic-mcp/extension...' run build",
+    "build:cli": "pnpm --filter '@civic-mcp/cli...' run build",
+    "build:testing": "pnpm --filter '@civic-mcp/testing...' run build",
+    "build:website": "pnpm --filter @civic-mcp/website run build",
+    "test:adapters": "vitest run",
     "registry:update": "node scripts/update-registry.js",
     "prepare": "husky install"
   },
@@ -88,6 +90,32 @@
       "no-eval": "error",
       "no-implied-eval": "error",
       "no-new-func": "error"
-    }
+    },
+    "overrides": [
+      {
+        "files": ["*.ts", "*.tsx"],
+        "parser": "@typescript-eslint/parser",
+        "plugins": ["@typescript-eslint"],
+        "parserOptions": {
+          "ecmaVersion": 2022,
+          "sourceType": "module"
+        },
+        "rules": {
+          "no-unused-vars": "off",
+          "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+          "no-eval": "error",
+          "no-implied-eval": "error",
+          "no-new-func": "error"
+        }
+      },
+      {
+        "files": ["packages/extension/src/**/*.ts", "packages/extension/src/**/*.tsx"],
+        "env": {
+          "browser": true,
+          "webextensions": true,
+          "es2022": true
+        }
+      }
+    ]
   }
 }
