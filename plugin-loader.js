@@ -15,18 +15,21 @@ class CivicMCPPluginSystem {
   async init() {
     console.log('[CivicMCPHub] Initializing plugin system...');
     
-    // Load registry from GitHub
-    this.registry = await this.fetchRegistry();
+    // Load registry and installed plugins concurrently
+    const [registry, installed] = await Promise.all([
+      this.fetchRegistry(),
+      this.getInstalledPlugins()
+    ]);
+    this.registry = registry;
     
-    // Load user's installed plugins
-    const installed = await this.getInstalledPlugins();
-    
-    // Load each enabled plugin
-    for (const pluginId of installed) {
+    // Load all enabled plugins concurrently
+    const pluginLoadPromises = installed.map(async (pluginId) => {
       if (await this.isPluginEnabled(pluginId)) {
         await this.loadPlugin(pluginId);
       }
-    }
+    });
+
+    await Promise.all(pluginLoadPromises);
     
     console.log(`[CivicMCPHub] Loaded ${this.plugins.size} plugins`);
   }
