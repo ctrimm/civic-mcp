@@ -1,0 +1,3 @@
+## 2026-04-16 - Accessible Notifications in Civic-MCP
+**Learning:** Notifications in browser extensions should be accessible to screen readers using ARIA roles (alert/status) and aria-live attributes. Visual feedback should include distinct colors and borders for different states (error, warning, info) with sufficient contrast. Manual dismissal (close button) is essential for UX, especially when notifications might obscure content or when users want to clear them quickly.
+**Action:** Always include ARIA roles, live regions, and a clear dismiss action when implementing custom UI notifications. Ensure styles provide high contrast and distinct visual cues for different message types.

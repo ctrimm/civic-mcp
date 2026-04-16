@@ -473,23 +473,49 @@ class PluginSandbox {
 
   showNotification(pluginId, type, message) {
     const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 16px;
-      border-radius: 6px;
-      background: ${type === 'error' ? '#fee2e2' : type === 'warning' ? '#fef3c7' : '#dbeafe'};
-      color: ${type === 'error' ? '#991b1b' : type === 'warning' ? '#92400e' : '#1e40af'};
-      z-index: 10000;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      font-family: system-ui;
-      font-size: 14px;
-    `;
-    notification.textContent = `[${pluginId}] ${message}`;
+
+    // Accessibility attributes
+    notification.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    notification.setAttribute('aria-live', 'polite');
+
+    const bgColor = type === 'error' ? '#fee2e2' : type === 'warning' ? '#fef3c7' : '#dbeafe';
+    const textColor = type === 'error' ? '#991b1b' : type === 'warning' ? '#92400e' : '#1e40af';
+    const borderColor = type === 'error' ? '#f87171' : type === 'warning' ? '#fbbf24' : '#60a5fa';
+
+    notification.style.cssText =
+      'position: fixed; top: 20px; right: 20px; padding: 12px 16px; border-radius: 6px; border: 1px solid ' +
+      borderColor +
+      '; background: ' +
+      bgColor +
+      '; color: ' +
+      textColor +
+      '; z-index: 10000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: system-ui, -apple-system, sans-serif; font-size: 14px; display: flex; align-items: center; gap: 12px; min-width: 300px; max-width: 450px;';
+
+    const content = document.createElement('span');
+    content.style.flex = '1';
+    content.textContent = '[' + pluginId + '] ' + message;
+    notification.appendChild(content);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.setAttribute('aria-label', 'Dismiss notification');
+    closeBtn.style.cssText =
+      'background: transparent; border: none; color: ' +
+      textColor +
+      '; font-size: 20px; cursor: pointer; padding: 4px; line-height: 1; opacity: 0.7;';
+    closeBtn.onmouseover = () => (closeBtn.style.opacity = '1');
+    closeBtn.onmouseout = () => (closeBtn.style.opacity = '0.7');
+    closeBtn.onclick = () => notification.remove();
+
+    notification.appendChild(closeBtn);
     document.body.appendChild(notification);
-    
-    setTimeout(() => notification.remove(), 5000);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 5000);
   }
 
   async execute(code, context) {
