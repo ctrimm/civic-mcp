@@ -10,7 +10,8 @@
  * waitForHuman() when reCAPTCHA appears — the SSA has required a human
  * verification step before submitting retirement claims since 2023.
  *
- * Selectors verified against the live site on 2026-02-18.
+ * Selectors are best-effort and UNVERIFIED against the live site.
+ * Verify and update before relying on this adapter.
  */
 
 import type { AdapterModule, SandboxContext, ToolResult } from '@civic-mcp/sdk';
@@ -236,7 +237,7 @@ const adapter: AdapterModule = {
             };
           }
 
-          // Extract benefit estimates — IDs verified against live HTML 2026-02-19
+          // Extract benefit estimates (selector IDs unverified against live HTML)
           const at62  = await page.getText('td#est_early');
           const atFRA = await page.getText('td#est_fra');
           const at70  = await page.getText('td#est_late');

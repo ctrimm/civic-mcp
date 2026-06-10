@@ -2,7 +2,7 @@
   "name": "@civic-mcp/extension",
   "version": "0.1.0",
   "description": "Civic-MCP Chrome extension — core runtime and marketplace UI",
-  "author": "Nava PBC <hello@navapbc.com>",
+  "author": "civic-mcp contributors",
   "license": "AGPL-3.0-or-later",
   "private": true,
   "type": "module",

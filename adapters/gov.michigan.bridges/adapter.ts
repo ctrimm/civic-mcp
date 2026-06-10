@@ -4,7 +4,8 @@
  * Target site: https://newmibridges.michigan.gov
  * Programs: SNAP (FAP), Medicaid, Cash Assistance (FIP), State Disability Assistance
  *
- * Selectors verified against the live site on 2026-02-17.
+ * Selectors are best-effort and UNVERIFIED against the live site.
+ * Verify and update before relying on this adapter.
  * MI Bridges uses an Angular-based SPA — wait for Angular rendering
  * after navigation.
  *

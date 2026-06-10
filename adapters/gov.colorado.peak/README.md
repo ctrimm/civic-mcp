@@ -3,9 +3,9 @@
 WebMCP tools for Colorado PEAK — the state portal for SNAP, Medicaid, Colorado Works, and CHP+.
 
 - **Site**: https://peak.my.site.com (Salesforce Experience Cloud)
-- **Trust level**: Verified
-- **Author**: Nava PBC
-- **Last verified**: 2026-02-17
+- **Trust level**: Community
+- **Author**: civic-mcp contributors
+- **Last verified**: never (selectors unverified)
 
 ## Tools
 

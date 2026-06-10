@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-02-18T00:00:00Z",
+  "updatedAt": "2026-06-10T00:00:00Z",
   "plugins": [
     {
       "id": "gov.ssa.retirement",
@@ -8,14 +8,20 @@
       "description": "Estimate monthly Social Security retirement benefits and begin a retirement application on SSA.gov. Demonstrates waitForHuman() for reCAPTCHA handling.",
       "latestVersion": "0.1.0",
       "category": "federal",
-      "tags": ["Social Security", "Retirement", "SSA", "Federal", "Benefits"],
-      "trustLevel": "verified",
-      "verified": true,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.ssa.retirement-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.ssa.retirement/manifest.json",
+      "tags": [
+        "Social Security",
+        "Retirement",
+        "SSA",
+        "Federal",
+        "Benefits"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.ssa.retirement/manifest.json",
       "updatedAt": "2026-02-18T00:00:00Z",
       "installs": 0,
-      "rating": 0
+      "rating": 0,
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.ssa.retirement"
     },
     {
       "id": "gov.colorado.peak",
@@ -23,15 +29,21 @@
       "description": "WebMCP tools for Colorado SNAP, Medicaid, and Colorado Works applications via peak.my.site.com",
       "latestVersion": "0.1.0",
       "category": "state_benefits",
-      "tags": ["SNAP", "Medicaid", "Colorado Works", "CHP+", "Colorado"],
-      "trustLevel": "verified",
-      "verified": true,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.colorado.peak-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.colorado.peak/manifest.json",
+      "tags": [
+        "SNAP",
+        "Medicaid",
+        "Colorado Works",
+        "CHP+",
+        "Colorado"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.colorado.peak/manifest.json",
       "updatedAt": "2026-02-17T00:00:00Z",
       "installs": 0,
       "rating": 0,
-      "state": "CO"
+      "state": "CO",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.colorado.peak"
     },
     {
       "id": "gov.california.getcalfresh",
@@ -39,15 +51,20 @@
       "description": "WebMCP tools for California CalFresh (SNAP) eligibility screening and application via GetCalFresh",
       "latestVersion": "0.1.0",
       "category": "state_benefits",
-      "tags": ["CalFresh", "SNAP", "Food Assistance", "California"],
-      "trustLevel": "verified",
-      "verified": true,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.california.getcalfresh-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.california.getcalfresh/manifest.json",
+      "tags": [
+        "CalFresh",
+        "SNAP",
+        "Food Assistance",
+        "California"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.california.getcalfresh/manifest.json",
       "updatedAt": "2026-02-17T00:00:00Z",
       "installs": 0,
       "rating": 0,
-      "state": "CA"
+      "state": "CA",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.california.getcalfresh"
     },
     {
       "id": "gov.michigan.bridges",
@@ -55,15 +72,20 @@
       "description": "WebMCP tools for Michigan SNAP, Medicaid, and Cash Assistance applications via MI Bridges",
       "latestVersion": "0.1.0",
       "category": "state_benefits",
-      "tags": ["SNAP", "Medicaid", "Cash Assistance", "Michigan"],
+      "tags": [
+        "SNAP",
+        "Medicaid",
+        "Cash Assistance",
+        "Michigan"
+      ],
       "trustLevel": "community",
       "verified": false,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.michigan.bridges-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.michigan.bridges/manifest.json",
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.michigan.bridges/manifest.json",
       "updatedAt": "2026-02-17T00:00:00Z",
       "installs": 0,
       "rating": 0,
-      "state": "MI"
+      "state": "MI",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.michigan.bridges"
     },
     {
       "id": "gov.texas.yourtexasbenefits",
@@ -71,15 +93,21 @@
       "description": "WebMCP tools for Texas SNAP, TANF, Medicaid, and CHIP applications via YourTexasBenefits",
       "latestVersion": "0.1.0",
       "category": "state_benefits",
-      "tags": ["SNAP", "TANF", "Medicaid", "CHIP", "Texas"],
+      "tags": [
+        "SNAP",
+        "TANF",
+        "Medicaid",
+        "CHIP",
+        "Texas"
+      ],
       "trustLevel": "community",
       "verified": false,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.texas.yourtexasbenefits-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.texas.yourtexasbenefits/manifest.json",
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.texas.yourtexasbenefits/manifest.json",
       "updatedAt": "2026-02-17T00:00:00Z",
       "installs": 0,
       "rating": 0,
-      "state": "TX"
+      "state": "TX",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.texas.yourtexasbenefits"
     }
   ],
   "categories": [

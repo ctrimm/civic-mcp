@@ -329,7 +329,7 @@ Initial seed with all four adapters. Structure per DESIGN.md.
 
 ### `registry/verified.json`
 
-Verified publisher list (Nava PBC, Code for America, USDS, etc.).
+Verified publisher list (empty until a real verification process exists).
 
 ### `scripts/update-registry.js`
 

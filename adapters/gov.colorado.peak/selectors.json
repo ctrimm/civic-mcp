@@ -1,5 +1,5 @@
 {
-  "_note": "Selectors for peak.my.site.com (Salesforce Experience Cloud / LWC). Last verified 2026-02-17. LWC uses shadow DOM — if a selector fails, try piercing shadow root or using data-id attributes.",
+  "_note": "Selectors for peak.my.site.com (Salesforce Experience Cloud / LWC). UNVERIFIED — best-effort selectors, verify against the live site. LWC uses shadow DOM — if a selector fails, try piercing shadow root or using data-id attributes.",
   "screener": {
     "form": "[data-id='prescreener-form'], .slds-form",
     "householdSize": "input[name='householdSize'], lightning-input[label*='household'] input",

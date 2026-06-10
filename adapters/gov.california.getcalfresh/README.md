@@ -3,9 +3,9 @@
 WebMCP tools for [GetCalFresh](https://www.getcalfresh.org) — Code for America's portal for California CalFresh (SNAP) applications.
 
 - **Site**: https://www.getcalfresh.org
-- **Trust level**: Verified
-- **Author**: Nava PBC / Code for America
-- **Last verified**: 2026-02-17
+- **Trust level**: Community
+- **Author**: civic-mcp contributors (community adapter — no affiliation with Code for America)
+- **Last verified**: never (selectors unverified)
 
 ## Tools
 

@@ -2,10 +2,12 @@
  * California GetCalFresh (CalFresh / SNAP) Adapter
  *
  * Target site: https://www.getcalfresh.org
- * Operated by: Code for America
+ * Note: getcalfresh.org is operated by a third-party nonprofit (not a government
+ *       agency). This community adapter is not affiliated with or endorsed by them.
  *
  * Based on the reference implementation in example-plugins.js.
- * Selectors verified against the live site on 2026-02-17.
+ * Selectors are best-effort and UNVERIFIED against the live site.
+ * Verify and update before relying on this adapter.
  *
  * Tools:
  *   - check_eligibility: Pre-screener (no login required)

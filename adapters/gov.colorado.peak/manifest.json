@@ -2,8 +2,7 @@
   "id": "gov.colorado.peak",
   "name": "Colorado PEAK Benefits",
   "version": "0.1.0",
-  "author": "Nava PBC",
-  "authorUrl": "https://navapbc.com",
+  "author": "civic-mcp contributors",
   "description": "WebMCP tools for Colorado SNAP, Medicaid, Colorado Works, and CHP+ applications via peak.my.site.com",
   "homepage": "https://peak.my.site.com",
   "repository": "https://github.com/civic-mcp/civic-mcp",
@@ -38,9 +37,8 @@
     "required": ["read:forms", "write:forms", "navigate"],
     "optional": ["storage:local", "notifications"]
   },
-  "trustLevel": "verified",
-  "verified": true,
-  "officialPartner": "Colorado Department of Human Services",
+  "trustLevel": "community",
+  "verified": false,
   "category": "state_benefits",
   "tags": ["SNAP", "Medicaid", "Colorado Works", "CHP+", "Colorado"],
   "state": "CO"

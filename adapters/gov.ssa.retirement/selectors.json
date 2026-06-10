@@ -22,7 +22,7 @@
 
     "submitBtn":     "input[type='submit'][value='Submit request']",
 
-    "_comment_results": "Results page — IDs verified 2026-02-19 against live HTML",
+    "_comment_results": "Results page — selector IDs are unverified against live HTML",
     "resultPageReady": "table[summary='formatting']",
     "resultTable":     "table[summary='benefits']",
     "benefitAge62":    "td#est_early",

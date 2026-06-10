@@ -2,8 +2,7 @@
   "id": "gov.california.getcalfresh",
   "name": "California GetCalFresh",
   "version": "0.1.0",
-  "author": "Nava PBC",
-  "authorUrl": "https://navapbc.com",
+  "author": "civic-mcp contributors",
   "description": "WebMCP tools for California CalFresh (SNAP) eligibility screening and application start via GetCalFresh",
   "homepage": "https://www.getcalfresh.org",
   "repository": "https://github.com/civic-mcp/civic-mcp",
@@ -28,9 +27,8 @@
     "required": ["read:forms", "write:forms", "navigate"],
     "optional": ["storage:local", "notifications"]
   },
-  "trustLevel": "verified",
-  "verified": true,
-  "officialPartner": "Code for America",
+  "trustLevel": "community",
+  "verified": false,
   "category": "state_benefits",
   "tags": ["CalFresh", "SNAP", "Food Assistance", "California"],
   "state": "CA"

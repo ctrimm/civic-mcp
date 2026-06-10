@@ -1,5 +1,5 @@
 {
-  "_note": "Selectors for newmibridges.michigan.gov (Angular SPA). Last verified 2026-02-17. Add 500ms sleep after navigation for Angular hydration.",
+  "_note": "Selectors for newmibridges.michigan.gov (Angular SPA). UNVERIFIED — best-effort selectors, verify against the live site. Add 500ms sleep after navigation for Angular hydration.",
   "screener": {
     "form": "form, [class*='screener'], [data-testid='screener-form'], .slds-form",
     "householdSize": "input[name='householdSize'], input[id*='household'], input[placeholder*='household']",

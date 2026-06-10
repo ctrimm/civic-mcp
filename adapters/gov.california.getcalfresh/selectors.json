@@ -1,5 +1,5 @@
 {
-  "_note": "Selectors for getcalfresh.org. Last verified 2026-02-17.",
+  "_note": "Selectors for getcalfresh.org. UNVERIFIED — best-effort selectors, verify against the live site.",
   "screener": {
     "form": "form, #eligibility-form, [data-testid='eligibility-form']",
     "zipCode": "input[name='zip_code'], input[name='zip'], input#zip-code, input[placeholder*='ZIP']",

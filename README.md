@@ -43,7 +43,7 @@ Adapters are community-contributed and independently maintained — one per gove
 # Option 1: Chrome Web Store (coming soon)
 
 # Option 2: Build from source
-git clone https://github.com/civic-mcp/civic-mcp.git
+git clone https://github.com/ctrimm/civic-mcp.git
 cd civic-mcp
 npm install
 npm run build:extension
@@ -110,21 +110,21 @@ Install the extension, open the target site in Chrome, then ask Claude:
 
 | Adapter | State | Programs | Status |
 |---------|-------|----------|--------|
-| [`gov.colorado.peak`](adapters/gov.colorado.peak) | Colorado | SNAP, Medicaid, Colorado Works, CHP+ | ✅ Verified |
-| [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh (SNAP) | ✅ Verified |
-| [`gov.michigan.bridges`](adapters/gov.michigan.bridges) | Michigan | SNAP, Medicaid, Cash | 🔄 In Review |
-| [`gov.texas.yourtexasbenefits`](adapters/gov.texas.yourtexasbenefits) | Texas | SNAP, TANF, Medicaid, CHIP | 🔄 In Review |
+| [`gov.colorado.peak`](adapters/gov.colorado.peak) | Colorado | SNAP, Medicaid, Colorado Works, CHP+ | 🧪 Community (selectors unverified) |
+| [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh (SNAP) | 🧪 Community (selectors unverified) |
+| [`gov.michigan.bridges`](adapters/gov.michigan.bridges) | Michigan | SNAP, Medicaid, Cash | 🧪 Community (selectors unverified) |
+| [`gov.texas.yourtexasbenefits`](adapters/gov.texas.yourtexasbenefits) | Texas | SNAP, TANF, Medicaid, CHIP | 🧪 Community (selectors unverified) |
 
 ### Federal Services
 
 | Adapter | Agency | Services | Status |
 |---------|--------|----------|--------|
-| [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Retirement benefit estimates, application start | ✅ Verified |
+| [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Retirement benefit estimates, application start | 🧪 Community (selectors unverified) |
 | [`gov.federal.va`](adapters/gov.federal.va) | Dept. of Veterans Affairs | Benefits, Healthcare | 🚧 Planned |
 | [`gov.federal.benefits`](adapters/gov.federal.benefits) | Benefits.gov | Multi-program screener | 🚧 Planned |
 
 **[Browse all adapters →](https://civic-mcp.dev/adapters)**
-**[Request an adapter →](https://github.com/civic-mcp/civic-mcp/issues/new?template=adapter-request.md)**
+**[Request an adapter →](https://github.com/ctrimm/civic-mcp/issues/new?template=adapter-request.md)**
 
 ---
 
@@ -309,7 +309,7 @@ civic-mcp publish          # submit to registry
 
 **Improve documentation** — see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
-**Report a bug or request an adapter** — use [GitHub Issues](https://github.com/civic-mcp/civic-mcp/issues).
+**Report a bug or request an adapter** — use [GitHub Issues](https://github.com/ctrimm/civic-mcp/issues).
 
 **[Full contribution guide →](CONTRIBUTING.md)**
 

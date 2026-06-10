@@ -5,7 +5,7 @@ WebMCP tools for [YourTexasBenefits](https://www.yourtexasbenefits.com) — the 
 - **Site**: https://www.yourtexasbenefits.com
 - **Trust level**: Community (pending Verified review)
 - **Author**: Community Contributor
-- **Last verified**: 2026-02-17
+- **Last verified**: never (selectors unverified)
 
 ## Tools
 

@@ -2,7 +2,7 @@
   "name": "civic-mcp",
   "version": "0.1.0",
   "description": "WebMCP abstraction layer for government websites — install adapters for any state or federal service and let AI agents navigate forms, check eligibility, and submit applications on behalf of citizens.",
-  "author": "Nava PBC <hello@navapbc.com>",
+  "author": "civic-mcp contributors",
   "license": "AGPL-3.0-or-later",
   "homepage": "https://civic-mcp.dev",
   "repository": {

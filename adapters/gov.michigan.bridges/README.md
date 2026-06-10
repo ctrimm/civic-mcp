@@ -5,7 +5,7 @@ WebMCP tools for [Michigan MI Bridges](https://newmibridges.michigan.gov) — th
 - **Site**: https://newmibridges.michigan.gov
 - **Trust level**: Community (pending Verified review)
 - **Author**: Community Contributor
-- **Last verified**: 2026-02-17
+- **Last verified**: never (selectors unverified)
 
 ## Tools
 

@@ -2,7 +2,7 @@
   "name": "@civic-mcp/sdk",
   "version": "0.1.0",
   "description": "Shared types and utilities for civic-mcp adapters and packages",
-  "author": "Nava PBC <hello@navapbc.com>",
+  "author": "civic-mcp contributors",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
