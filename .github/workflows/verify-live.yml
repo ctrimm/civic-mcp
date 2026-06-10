@@ -33,7 +33,7 @@ on:
 
 env:
   ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement gov.california.getcalfresh gov.california.benefitscal gov.medicare.eligibility gov.irs.withholding gov.studentaid.estimator' }}
-  PROBE_URL: ${{ inputs.probe_url || 'https://newmibridges.michigan.gov/ https://peak.my.site.com/peak/s/ https://peak.my.site.com/' }}
+  PROBE_URL: ${{ inputs.probe_url || 'https://newmibridges.michigan.gov/::click=button[name=guest-afb-btn] https://newmibridges.michigan.gov/::click=button[name=find-resource-btn] https://peak.colorado.gov/ https://peak.colorado.gov/am-i-eligible' }}
 
 jobs:
   verify:
