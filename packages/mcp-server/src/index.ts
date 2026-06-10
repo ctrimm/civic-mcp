@@ -63,6 +63,7 @@ const ADAPTERS_DIR = process.env['CIVIC_MCP_ADAPTERS_DIR']
 
 const HEADED        = process.env['CIVIC_MCP_HEADED'] === '1';
 const TOOL_TIMEOUT  = parseInt(process.env['CIVIC_MCP_TIMEOUT'] ?? '60000', 10);
+const ALLOW_WRITE   = process.env['CIVIC_MCP_ALLOW_WRITE'] === '1';
 
 // ---------------------------------------------------------------------------
 // Bootstrap: load adapters
@@ -120,17 +121,40 @@ const server = new Server(
 // ── tools/list ──────────────────────────────────────────────────────────────
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: tools.map((t) => ({
-    name:        t.mcpName,
-    description: buildDescription(t),
-    inputSchema: t.tool.inputSchema,
-  })),
+  tools: tools.map((t) => {
+    const readOnly = securityLevelFor(t) === 'read_only';
+    return {
+      name:        t.mcpName,
+      description: buildDescription(t),
+      inputSchema: t.tool.inputSchema,
+      annotations: {
+        title: `${t.manifest.name}: ${t.tool.name}`,
+        readOnlyHint: readOnly,
+        // Write tools submit real data to real government systems —
+        // clients should treat them as consequential and confirm with the user.
+        destructiveHint: !readOnly,
+        openWorldHint: true,
+      },
+    };
+  }),
 }));
 
 function buildDescription(t: LoadedTool): string {
   // Prefix every tool description with adapter metadata so the AI has context
   const prefix = `[${t.manifest.name}] `;
-  return prefix + t.tool.description;
+  const suffix = securityLevelFor(t) === 'write'
+    ? ' (WRITE tool: fills and/or submits real forms. Requires CIVIC_MCP_ALLOW_WRITE=1 on the server.)'
+    : '';
+  return prefix + t.tool.description + suffix;
+}
+
+/**
+ * Security level declared in the adapter manifest for this tool.
+ * Defaults to 'write' (the conservative choice) when undeclared.
+ */
+function securityLevelFor(t: LoadedTool): 'read_only' | 'write' {
+  const summary = t.manifest.tools.find((s) => s.name === t.tool.name);
+  return summary?.securityLevel ?? 'write';
 }
 
 // ── tools/call ──────────────────────────────────────────────────────────────
@@ -144,6 +168,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   } catch (err) {
     return {
       content: [{ type: 'text', text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+      isError: true,
+    };
+  }
+
+  // Gate write tools behind an explicit operator opt-in. MCP annotations are
+  // advisory only — a client that ignores them must still not be able to
+  // submit applications unless the person running the server allowed it.
+  if (securityLevelFor(found) === 'write' && !ALLOW_WRITE) {
+    return {
+      content: [{
+        type: 'text',
+        text:
+          `Tool "${name}" is a WRITE tool — it fills and/or submits real forms on a government website. ` +
+          `Write tools are disabled by default. To enable them, restart the civic-mcp server with ` +
+          `CIVIC_MCP_ALLOW_WRITE=1 in its environment, and review the data before submission.`,
+      }],
       isError: true,
     };
   }
