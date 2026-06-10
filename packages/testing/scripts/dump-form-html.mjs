@@ -26,8 +26,9 @@ try {
       'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
   });
   for (const url of urls) {
-  const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
-  await page.waitForTimeout(2_000); // allow late hydration
+  try {
+  const response = await page.goto(url, { waitUntil: 'load', timeout: 60_000 });
+  await page.waitForTimeout(3_500); // allow SPA hydration
 
   console.log(`===== BEGIN FORM DUMP: ${url} =====`);
   console.log(`HTTP ${response?.status()} — final URL: ${page.url()}`);
@@ -59,6 +60,9 @@ try {
   console.log(`\n--- ${controls.length} form control(s) ---`);
   controls.forEach((c) => console.log('  ' + c));
   console.log(`===== END FORM DUMP: ${url} =====`);
+  } catch (err) {
+    console.log(`===== PROBE FAILED: ${url} — ${err instanceof Error ? err.message : err} =====`);
+  }
   }
 } finally {
   await browser.close();

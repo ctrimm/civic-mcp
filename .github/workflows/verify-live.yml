@@ -28,12 +28,12 @@ on:
     branches: ['claude/**']
     paths:
       - '.github/workflows/verify-live.yml'
-      - 'adapters/gov.ssa.retirement/**'
+      - 'adapters/**'
       - 'packages/testing/**'
 
 env:
   ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement' }}
-  PROBE_URL: ${{ inputs.probe_url || 'https://www.ssa.gov/OACT/population/longevity.html https://secure.ssa.gov/ICON/main.jsp' }}
+  PROBE_URL: ${{ inputs.probe_url || 'https://www.getcalfresh.org/en/prescreen https://benefitscal.com/help-me-find/am-i-eligible https://benefitscal.com/ https://www.medicare.gov/eligibilitypremiumcalc https://studentaid.gov/aid-estimator https://apps.irs.gov/app/tax-withholding-estimator' }}
 
 jobs:
   verify:
