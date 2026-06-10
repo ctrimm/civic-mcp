@@ -1,56 +1,32 @@
 # Michigan MI Bridges Adapter
 
-WebMCP tools for [Michigan MI Bridges](https://newmibridges.michigan.gov) — the state portal for SNAP (FAP), Medicaid, and Cash Assistance (FIP).
+Tools for [MI Bridges](https://newmibridges.michigan.gov) — Michigan's portal
+for SNAP (Food Assistance Program), Medicaid, and cash assistance.
 
-- **Site**: https://newmibridges.michigan.gov
-- **Trust level**: Community (pending Verified review)
-- **Author**: Community Contributor
-- **Last verified**: 2026-02-17
+- **Author**: civic-mcp contributors
+- **Trust level**: Community
+- **Last verified**: 2026-06-10 — entry points verified via live CI probes
+  ([27271075100](https://github.com/ctrimm/civic-mcp/actions/runs/27271075100),
+  [27271379213](https://github.com/ctrimm/civic-mcp/actions/runs/27271379213))
+
+> The previous version of this adapter drove hardcoded paths
+> (`/s/isd-check-benefits`, `/s/isd-apply-benefits`) that were never verified.
+> It now uses click-through flows from the verified landing page buttons.
 
 ## Tools
 
-### `gov.michigan.bridges.check_eligibility`
+### `explore_resources` (read-only)
+Opens MI Bridges "Explore Resources" (`/s/isd-explore-resources`) — the
+directory of state and community assistance programs — and reports its
+content. No login required. Live-verified headless.
 
-Run the MI Bridges pre-screener. **No login required.**
+### `start_application` (write, human handoff)
+Clicks the verified guest-application button (routes to
+`/s/isd-external-afb-screen`) and hands the browser to the user for the
+screening questions and application. Nothing is filled or submitted by the
+agent. Requires `CIVIC_MCP_ALLOW_WRITE=1`.
 
-| Input | Type | Required | Description |
-|---|---|---|---|
-| `householdSize` | number | ✅ | People in household |
-| `monthlyGrossIncome` | number | ✅ | Monthly gross income in dollars |
-| `hasChildren` | boolean | — | Children under 18 |
-| `hasDisability` | boolean | — | Household member with disability |
-| `county` | string | — | Michigan county name |
-
-**Output:** `snapResult`, `medicaidResult`, `cashAssistanceResult`, `overallMessage`, `note`
-
-### `gov.michigan.bridges.start_application`
-
-Begin a Michigan benefits application. **Requires MI Bridges login.**
-
-| Input | Type | Required | Description |
-|---|---|---|---|
-| `firstName` | string | ✅ | |
-| `lastName` | string | ✅ | |
-| `dateOfBirth` | string | ✅ | MM/DD/YYYY |
-| `programs` | string[] | — | `["SNAP", "Medicaid", "Cash", "SDA"]` |
-
-**Output:** `applicationId`, `programs`, `nextStep`
-
-### `gov.michigan.bridges.check_application_status`
-
-Check application status. **Requires login.**
-
-**Output:** `status`, `lastUpdated`, `applicationId`
-
-## Technical Notes
-
-- MI Bridges uses an Angular SPA. The adapter adds a 500ms wait after navigation for Angular hydration.
-- Community trust level — selectors have not gone through full Verified review. Report issues via GitHub.
-
-## Testing
-
-```bash
-civic-mcp test
-```
-
-Last tested: 2026-02-17
+### `check_application_status` (read-only, login handoff)
+Opens the login flow, pauses for the user to sign in, then reports the
+dashboard content. The session persists in the active identity's browser
+profile.

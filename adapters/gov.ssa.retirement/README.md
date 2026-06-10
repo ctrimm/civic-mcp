@@ -2,7 +2,8 @@
 
 **Adapter ID:** `gov.ssa.retirement`
 **Sites:** `www.ssa.gov` · `secure.ssa.gov`
-**Trust level:** Verified
+**Trust level:** Community
+**Last verified:** 2026-06-10 — all 12 live tests passed against production ssa.gov in CI ([run 27268888303](https://github.com/ctrimm/civic-mcp/actions/runs/27268888303)): benefit estimator, life expectancy calculator, office locator, and the application handoff
 
 ---
 
@@ -38,72 +39,66 @@ retirement benefit at three claiming ages.
 
 ---
 
+### `estimate_life_expectancy`
+
+Drives the [SSA Life Expectancy Calculator](https://www.ssa.gov/OACT/population/longevity.html)
+(sex + date of birth → average additional life expectancy from SSA actuarial
+tables). Useful when weighing claiming ages. Selectors were captured from the
+live form HTML by the verify-live probe — note the month values are 0-based
+and the day list is JS-populated.
+
+| Input | Type | Required |
+|---|---|---|
+| `sex` | `"male"` / `"female"` | Yes |
+| `birthMonth` | number (1–12) | Yes |
+| `birthDay` | number (1–31) | Yes |
+| `birthYear` | number (1908–2026) | Yes |
+
+---
+
+### `find_local_office`
+
+Searches the [SSA Field Office Locator](https://www.ssa.gov/locator) by ZIP,
+city, or address and returns the site-reported office details. (The old
+`secure.ssa.gov/ICON` locator now redirects here.)
+
+---
+
 ### `start_retirement_application`
 
-Navigates to the SSA online retirement application (`secure.ssa.gov/iClaim/rib`), fills
-personal information autonomously, then **pauses for a human to solve a reCAPTCHA** before
-submitting.
+Opens the SSA online retirement application (`secure.ssa.gov/iClaim/rib`) and
+**hands the browser to the human**. SSA requires identity verification through
+Login.gov or ID.me, and the application asks for a full SSN — both things an
+agent must never automate. The tool navigates there, pauses with
+`waitForHuman()`, and reports back when the user says they're done.
 
-This tool is the canonical example of the `waitForHuman()` API. SSA has required a
-reCAPTCHA on the retirement application since 2023; it cannot be bypassed programmatically.
+> The previous version of this tool claimed to fill and submit the application
+> autonomously and return a confirmation number. The live CI run on 2026-06-10
+> proved those selectors never existed on the real page; the flow was removed.
 
-| Input | Type | Required | Description |
-|---|---|---|---|
-| `dateOfBirth` | string | Yes | `MM/DD/YYYY` format |
-| `firstName` | string | Yes | Legal first name |
-| `lastName` | string | Yes | Legal last name |
-| `phone` | string | Yes | 10-digit phone (digits only) |
-| `claimMonth` | string | No | e.g. `"January 2026"` |
-
-**Output:**
+No inputs. **Output:**
 ```json
 {
-  "confirmationNumber": "24NHB0005309",
-  "nextSteps": "SSA will mail a letter within 5–7 business days.",
-  "applicationUrl": "https://secure.ssa.gov/iClaim/rib/confirmation"
+  "applicationUrl": "https://secure.ssa.gov/iClaim/rib",
+  "note": "Browser was handed to the user for the application. Nothing was filled or submitted by the agent."
 }
 ```
 
 ---
 
-## Running for a demo video
-
-### Step 1 — Start headed mode
+## Running headed (interactive)
 
 ```bash
-CIVIC_MCP_HEADED=1 pnpm --filter @civic-mcp/testing exec vitest run \
-  adapters/gov.ssa.retirement
+CIVIC_MCP_HEADED=1 pnpm exec vitest run adapters/gov.ssa.retirement
 ```
 
-A Chromium window opens. The test suite runs automatically:
+A Chromium window opens:
 
-1. **Estimate tool** — fills the Quick Calculator form and reads results back. No interaction
-   needed from you.
-2. **Application tool** — navigates to `secure.ssa.gov`, fills name / DOB / phone. When the
-   reCAPTCHA iframe appears the adapter calls `waitForHuman()`:
-   - **In the terminal:** the prompt is printed and execution pauses.
-   - **In the browser:** the partially-filled form is visible with the reCAPTCHA checkbox.
-
-### Step 2 — Solve the CAPTCHA
-
-Click the "I'm not a robot" checkbox (or complete the image challenge if prompted).
-
-### Step 3 — Resume
-
-Press **Enter** in the terminal. The adapter submits the form and prints the confirmation number.
-
-### Using the extension popup instead
-
-When running via the Chrome extension (not the test harness), the `waitForHuman()` overlay
-appears automatically in the popup — no terminal interaction needed. That path is ideal for
-a polished demo:
-
-1. Open the Civic-MCP popup.
-2. Trigger the `start_retirement_application` tool from your AI assistant.
-3. The popup dims and shows: _"SSA requires a reCAPTCHA before submitting your application…"_
-4. Solve the CAPTCHA in the tab.
-5. Click **Done — continue** in the popup.
-6. The AI assistant receives the confirmation number.
+1. **Estimate tool** — fills the Quick Calculator form and reads results back
+   automatically. No interaction needed (verified live 2026-06-10).
+2. **Application tool** — opens the application entry page and pauses. Sign in
+   and complete (or abandon) the application yourself, then press **Enter** in
+   the terminal to resume.
 
 ---
 
@@ -113,11 +108,11 @@ a polished demo:
 // In the adapter:
 await context.page.waitForHuman({
   prompt:
-    'SSA requires a reCAPTCHA before submitting your application.\n\n' +
-    '1. Look at the browser window — a "I\'m not a robot" checkbox should be visible.\n' +
-    '2. Complete the reCAPTCHA challenge.\n' +
-    '3. Click "Done — continue" here once the checkmark appears.',
-  timeout: 10 * 60 * 1_000, // 10 minutes
+    'The SSA retirement application is open in the browser.\n\n' +
+    '1. Sign in with Login.gov or ID.me (or create an account).\n' +
+    '2. Complete the application steps yourself.\n' +
+    '3. Click "Done — continue" here when you have finished.',
+  timeout: 30 * 60 * 1_000, // 30 minutes
 });
 ```
 

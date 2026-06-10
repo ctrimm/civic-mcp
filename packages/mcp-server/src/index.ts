@@ -46,12 +46,19 @@ import { Server }                  from '@modelcontextprotocol/sdk/server/index.
 import { StdioServerTransport }    from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ListToolsRequestSchema,
          CallToolRequestSchema }   from '@modelcontextprotocol/sdk/types.js';
-import { chromium, type Browser }  from 'playwright';
+import { chromium, type BrowserContext, type Page } from 'playwright';
 import { resolve }                 from 'node:path';
 import { fileURLToPath }           from 'node:url';
+import type { ApplicantProfile }   from '@civic-mcp/sdk';
 
 import { loadAdapters, flattenTools, findTool, type LoadedTool } from './adapter-loader.js';
 import { createSandboxForTool }    from './sandbox.js';
+import {
+  resolveIdentity,
+  loadApplicantProfile,
+  saveApplicantProfile,
+  makeIdentityAPI,
+} from './identity.js';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -63,6 +70,12 @@ const ADAPTERS_DIR = process.env['CIVIC_MCP_ADAPTERS_DIR']
 
 const HEADED        = process.env['CIVIC_MCP_HEADED'] === '1';
 const TOOL_TIMEOUT  = parseInt(process.env['CIVIC_MCP_TIMEOUT'] ?? '60000', 10);
+const ALLOW_WRITE   = process.env['CIVIC_MCP_ALLOW_WRITE'] === '1';
+
+// Active portable identity (browser profile + applicant data + adapter storage).
+// Select with CIVIC_MCP_IDENTITY; see docs/identity.md for the on-disk layout.
+const identity = await resolveIdentity();
+process.stderr.write(`[civic-mcp] Identity: "${identity.name}" (${identity.dir})\n`);
 
 // ---------------------------------------------------------------------------
 // Bootstrap: load adapters
@@ -84,26 +97,99 @@ try {
 }
 
 // ---------------------------------------------------------------------------
-// Browser (one instance for the server lifetime)
+// Browser — one persistent context for the server lifetime, backed by the
+// identity's browser-profile dir, so logins survive across tool calls AND
+// across server restarts. Each adapter keeps its own page open between
+// calls so multi-step flows (call 1: start application, call 2: continue)
+// retain state.
 // ---------------------------------------------------------------------------
 
-let browser: Browser | undefined;
+let browserContext: BrowserContext | undefined;
+const adapterPages = new Map<string, Page>();
 
-async function getBrowser(): Promise<Browser> {
-  if (browser) return browser;
-  browser = await chromium.launch({
+async function getBrowserContext(): Promise<BrowserContext> {
+  if (browserContext) return browserContext;
+  browserContext = await chromium.launchPersistentContext(identity.browserProfileDir, {
     headless: !HEADED,
+    viewport: { width: 1280, height: 800 },
     args: ['--enable-experimental-web-platform-features'],
   });
-  process.stderr.write(`[civic-mcp] Chromium launched (${HEADED ? 'headed' : 'headless'})\n`);
-  return browser;
+
+  // EXPERIMENTAL: WebMCP polyfill stub. Injects a minimal
+  // navigator.modelContext into every page so we can observe real-world
+  // WebMCP adoption: when a government site starts registering its own
+  // tools, it shows up in our logs. Registered tools are recorded but NOT
+  // yet re-exposed over MCP — that lands when sites actually ship WebMCP.
+  await browserContext.exposeBinding(
+    '__civicMcpWebMcpObserved',
+    (source, toolName: unknown, description: unknown) => {
+      process.stderr.write(
+        `[civic-mcp] WebMCP: page ${source.page.url()} registered tool ` +
+          `"${String(toolName)}" (${String(description).slice(0, 80)}) — ` +
+          `captured by polyfill stub, not yet bridged to MCP\n`,
+      );
+    },
+  );
+  // (Passed as a string: this code runs in the page, where DOM globals exist,
+  // but is compiled here under Node's type environment.)
+  await browserContext.addInitScript(`
+    (() => {
+      if (navigator.modelContext) return; // real WebMCP available — don't shadow it
+      const registered = [];
+      Object.defineProperty(navigator, 'modelContext', {
+        configurable: true,
+        value: {
+          __civicMcpPolyfill: true,
+          registerTool(tool) {
+            registered.push(tool);
+            if (window.__civicMcpWebMcpObserved) {
+              window.__civicMcpWebMcpObserved(
+                (tool && tool.name) || '<unnamed>',
+                (tool && tool.description) || '',
+              );
+            }
+          },
+          get tools() {
+            return registered;
+          },
+        },
+      });
+    })();
+  `);
+
+  process.stderr.write(
+    `[civic-mcp] Chromium launched (${HEADED ? 'headed' : 'headless'}, ` +
+    `profile: ${identity.browserProfileDir}, WebMCP polyfill stub active)\n`,
+  );
+  return browserContext;
+}
+
+/** Get (or create) the long-lived page for an adapter. */
+async function getAdapterPage(adapterId: string): Promise<Page> {
+  const existing = adapterPages.get(adapterId);
+  if (existing && !existing.isClosed()) return existing;
+
+  const ctx = await getBrowserContext();
+  const page = await ctx.newPage();
+  adapterPages.set(adapterId, page);
+  return page;
+}
+
+/** Close all adapter pages and the browser context (cookies persist on disk). */
+async function closeBrowserSession(): Promise<void> {
+  for (const page of adapterPages.values()) {
+    if (!page.isClosed()) await page.close().catch(() => {});
+  }
+  adapterPages.clear();
+  await browserContext?.close().catch(() => {});
+  browserContext = undefined;
 }
 
 // Clean up on exit
 for (const sig of ['SIGINT', 'SIGTERM']) {
   process.on(sig, async () => {
     process.stderr.write(`\n[civic-mcp] Shutting down…\n`);
-    await browser?.close();
+    await closeBrowserSession();
     process.exit(0);
   });
 }
@@ -120,23 +206,157 @@ const server = new Server(
 // ── tools/list ──────────────────────────────────────────────────────────────
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: tools.map((t) => ({
-    name:        t.mcpName,
-    description: buildDescription(t),
-    inputSchema: t.tool.inputSchema,
-  })),
+  tools: [
+    ...BUILTIN_TOOLS,
+    ...tools.map((t) => {
+      const readOnly = securityLevelFor(t) === 'read_only';
+      return {
+        name:        t.mcpName,
+        description: buildDescription(t),
+        inputSchema: t.tool.inputSchema,
+        annotations: {
+          title: `${t.manifest.name}: ${t.tool.name}`,
+          readOnlyHint: readOnly,
+          // Write tools submit real data to real government systems —
+          // clients should treat them as consequential and confirm with the user.
+          destructiveHint: !readOnly,
+          openWorldHint: true,
+        },
+      };
+    }),
+  ],
 }));
 
 function buildDescription(t: LoadedTool): string {
   // Prefix every tool description with adapter metadata so the AI has context
   const prefix = `[${t.manifest.name}] `;
-  return prefix + t.tool.description;
+  const suffix = securityLevelFor(t) === 'write'
+    ? ' (WRITE tool: fills and/or submits real forms. Requires CIVIC_MCP_ALLOW_WRITE=1 on the server.)'
+    : '';
+  return prefix + t.tool.description + suffix;
+}
+
+/**
+ * Security level declared in the adapter manifest for this tool.
+ * Defaults to 'write' (the conservative choice) when undeclared.
+ */
+function securityLevelFor(t: LoadedTool): 'read_only' | 'write' {
+  const summary = t.manifest.tools.find((s) => s.name === t.tool.name);
+  return summary?.securityLevel ?? 'write';
+}
+
+// ── built-in server tools (identity management, session control) ───────────
+
+const BUILTIN_TOOLS = [
+  {
+    name: 'identity_get_profile',
+    description:
+      `Read the applicant profile saved in the active civic-mcp identity ` +
+      `("${identity.name}"). Adapters use this data to prefill government forms. ` +
+      `Returns null if no profile has been saved yet.`,
+    inputSchema: { type: 'object', properties: {} },
+    annotations: { title: 'Identity: get applicant profile', readOnlyHint: true, openWorldHint: false },
+  },
+  {
+    name: 'identity_set_profile',
+    description:
+      `Save (replace) the applicant profile for the active civic-mcp identity ` +
+      `("${identity.name}"). Stored encrypted on the local machine with an OS-keychain key. ` +
+      `Never include a full SSN — only ssnLast4 is accepted.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        profile: {
+          type: 'object',
+          description:
+            'ApplicantProfile object: firstName, lastName, dateOfBirth (ISO), ssnLast4, ' +
+            'phone, email, preferredLanguage, address {street, unit, city, state, zip}, ' +
+            'household {size, hasElderlyMember, hasDisabledMember, members[]}, ' +
+            'income {monthlyGross, monthlyRent, monthlyUtilities, monthlyChildCare, monthlyMedicalCosts}',
+        },
+      },
+      required: ['profile'],
+    },
+    annotations: { title: 'Identity: save applicant profile', readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  },
+  {
+    name: 'session_reset',
+    description:
+      'Close all open browser pages for the current civic-mcp session. ' +
+      'Saved logins (cookies) persist on disk unless clearCookies is true.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        clearCookies: {
+          type: 'boolean',
+          description: 'Also clear cookies/logins stored in the identity browser profile',
+        },
+      },
+    },
+    annotations: { title: 'Session: reset browser', readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  },
+];
+
+async function callBuiltinTool(
+  name: string,
+  args: Record<string, unknown>,
+): Promise<{ content: { type: 'text'; text: string }[]; isError?: boolean } | null> {
+  switch (name) {
+    case 'identity_get_profile': {
+      const profile = await loadApplicantProfile(identity);
+      return { content: [{ type: 'text', text: JSON.stringify(profile, null, 2) }] };
+    }
+
+    case 'identity_set_profile': {
+      const profile = args['profile'];
+      if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
+        return {
+          content: [{ type: 'text', text: 'Error: "profile" must be an object' }],
+          isError: true,
+        };
+      }
+      await saveApplicantProfile(identity, profile as ApplicantProfile);
+      return {
+        content: [{ type: 'text', text: `Applicant profile saved for identity "${identity.name}".` }],
+      };
+    }
+
+    case 'session_reset': {
+      const clearCookies = args['clearCookies'] === true;
+      if (clearCookies && browserContext) {
+        await browserContext.clearCookies();
+      }
+      await closeBrowserSession();
+      return {
+        content: [{
+          type: 'text',
+          text: clearCookies
+            ? 'Browser session closed and cookies cleared.'
+            : 'Browser session closed. Saved logins persist on disk.',
+        }],
+      };
+    }
+
+    default:
+      return null; // not a builtin
+  }
 }
 
 // ── tools/call ──────────────────────────────────────────────────────────────
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args = {} } = request.params;
+
+  // Built-in tools first (identity + session management)
+  try {
+    const builtin = await callBuiltinTool(name, args as Record<string, unknown>);
+    if (builtin) return builtin;
+  } catch (err) {
+    return {
+      content: [{ type: 'text', text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+      isError: true,
+    };
+  }
 
   let found: LoadedTool;
   try {
@@ -148,13 +368,30 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     };
   }
 
-  const b = await getBrowser();
-  const bCtx = await b.newContext({ viewport: { width: 1280, height: 800 } });
-  const page = await bCtx.newPage();
+  // Gate write tools behind an explicit operator opt-in. MCP annotations are
+  // advisory only — a client that ignores them must still not be able to
+  // submit applications unless the person running the server allowed it.
+  if (securityLevelFor(found) === 'write' && !ALLOW_WRITE) {
+    return {
+      content: [{
+        type: 'text',
+        text:
+          `Tool "${name}" is a WRITE tool — it fills and/or submits real forms on a government website. ` +
+          `Write tools are disabled by default. To enable them, restart the civic-mcp server with ` +
+          `CIVIC_MCP_ALLOW_WRITE=1 in its environment, and review the data before submission.`,
+      }],
+      isError: true,
+    };
+  }
 
-  const { context, dispose } = await createSandboxForTool(page, found.manifest, {
+  // Long-lived page per adapter: state and logins survive across calls
+  const page = await getAdapterPage(found.adapterId);
+
+  const context = createSandboxForTool(page, found.manifest, {
     timeout: TOOL_TIMEOUT,
     headed: HEADED,
+    storageDir: identity.storageDir,
+    identity: makeIdentityAPI(identity),
   });
 
   process.stderr.write(`[civic-mcp] Calling ${name}…\n`);
@@ -163,8 +400,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     result = await found.tool.execute(args as Record<string, unknown>, context);
   } catch (err) {
-    await dispose();
-    await bCtx.close();
     const msg = err instanceof Error ? err.message : String(err);
     process.stderr.write(`[civic-mcp] Tool "${name}" threw: ${msg}\n`);
     return {
@@ -172,9 +407,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       isError: true,
     };
   }
-
-  await dispose();
-  await bCtx.close();
 
   if (!result.success) {
     process.stderr.write(`[civic-mcp] Tool "${name}" returned error: ${result.error}\n`);

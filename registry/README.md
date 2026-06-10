@@ -7,7 +7,7 @@ The source-of-truth adapter registry for civic-mcp. The extension and the public
 | File | Purpose |
 |------|---------|
 | `registry.json` | Master list of all published adapters with metadata |
-| `verified.json` | Approved verified publishers (Nava PBC, Code for America, USDS, etc.) |
+| `verified.json` | Approved verified publishers (currently empty — no verification process exists yet) |
 
 ## registry.json shape
 

@@ -83,8 +83,8 @@ plugin-colorado-peak/
   "id": "gov.colorado.peak",
   "name": "Colorado PEAK Benefits",
   "version": "1.2.0",
-  "author": "Nava PBC",
-  "authorUrl": "https://navapbc.com",
+  "author": "Example Civic Tech Org",
+  "authorUrl": "https://example.org",
   "description": "WebMCP tools for Colorado SNAP, Medicaid, and Colorado Works applications",
   "homepage": "https://peak.my.site.com",
   "repository": "https://github.com/civic-mcp/plugin-colorado-peak",
@@ -309,7 +309,7 @@ export default {
    - Developed by known civic tech organizations
    - Full code review completed
    - Active maintenance commitment
-   - Examples: Nava PBC, Code for America, USDS
+   - Examples: established civic tech organizations (none enrolled yet)
 
 3. **Community** (user discretion)
    - Open source, anyone can contribute
@@ -377,7 +377,7 @@ Users see permissions before installing and can revoke them.
 # Verified plugins are signed
 {
   "signature": "SHA256:abc123...",
-  "signer": "Nava PBC",
+  "signer": "Example Civic Tech Org",
   "signedAt": "2026-02-15T10:00:00Z",
   "verified": true
 }
@@ -523,7 +523,7 @@ Once approved:
 │  ⭐⭐⭐⭐⭐ 4.8 (1,243 installs)          │
 │                                         │
 │  SNAP, Medicaid, Colorado Works         │
-│  By: Nava PBC ✓ Verified                │
+│  By: Example Org ✓ Verified                │
 │                                         │
 │  Tools: 5 | Updated: 2 days ago         │
 │                                         │

@@ -1,0 +1,13 @@
+{
+  "_note": "Entry points VERIFIED 2026-06-10 against the live site (CI runs 27269295403, 27269590345). BenefitsCal is an Angular SPA; flows beyond these entry points are reported as presented, not automated.",
+  "home": {
+    "url": "https://benefitscal.com/",
+    "doIQualify": "#HomePage_doIQualify_btn",
+    "login": "#HomePage_login_btn",
+    "createAccount": "#HomePage_create_account_btn"
+  },
+  "application": {
+    "beginUrl": "https://benefitscal.com/ApplyForBenefits/begin/ABOVR?lang=en",
+    "_source": "Official apply link published by getcalfresh.org"
+  }
+}

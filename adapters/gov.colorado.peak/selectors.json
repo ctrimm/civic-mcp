@@ -1,39 +1,17 @@
 {
-  "_note": "Selectors for peak.my.site.com (Salesforce Experience Cloud / LWC). Last verified 2026-02-17. LWC uses shadow DOM — if a selector fails, try piercing shadow root or using data-id attributes.",
-  "screener": {
-    "form": "[data-id='prescreener-form'], .slds-form",
-    "householdSize": "input[name='householdSize'], lightning-input[label*='household'] input",
-    "monthlyIncome": "input[name='monthlyIncome'], lightning-input[label*='income'] input",
-    "hasElderly": "input[name='hasElderly'], input[name='hasDisability']",
-    "hasChildren": "input[name='hasChildren']",
-    "submit": "button[type='submit'], lightning-button button[type='submit']",
-    "results": ".results, .eligibility-results, [data-id='results']",
-    "snapResult": ".snap-result, [data-program='SNAP'] .result",
-    "medicaidResult": ".medicaid-result, [data-program='Medicaid'] .result"
+  "_note": "Public routes VERIFIED 2026-06-10 against the live site (CI run 27271735544). Site roots redirect to login; these deep routes are public. Salesforce LWC \u2014 Playwright selectors pierce shadow DOM.",
+  "applyWelcome": {
+    "url": "https://peak.my.site.com/peak/s/afb-welcome?language=en_US",
+    "applyAsGuest": "button[name='ApplyAsGuest']",
+    "signIn": "button[name='SignIn']",
+    "createAccount": "button[name='CreatePEAKAccount']"
   },
-  "application": {
-    "welcome": ".afb-welcome, [data-id='welcome']",
-    "newApplicationBtn": "button[data-id='new-application'], a[href*='apply']",
-    "firstName": "input[name='firstName'], lightning-input[label*='First'] input",
-    "lastName": "input[name='lastName'], lightning-input[label*='Last'] input",
-    "dateOfBirth": "input[name='dateOfBirth'], lightning-input[label*='Birth'] input",
-    "street": "input[name='street'], lightning-input[label*='Street'] input",
-    "city": "input[name='city'], lightning-input[label*='City'] input",
-    "zip": "input[name='zip'], lightning-input[label*='ZIP'] input",
-    "submit": "button[type='submit']",
-    "confirmation": ".confirmation, .application-id, [data-id='confirmation']",
-    "applicationId": ".application-id, [data-id='app-id'], .confirmation-number"
+  "findBenefits": {
+    "url": "https://peak.my.site.com/peak/s/benefit-information?language=en_US"
   },
-  "status": {
-    "list": ".applications-list, [data-id='app-list']",
-    "spinner": ".slds-spinner",
-    "statusBadge": ".application-status, [data-id='status'], .status-badge",
-    "programName": ".program-name, [data-id='program']",
-    "lastUpdated": ".last-updated, [data-id='last-updated']",
-    "nextAction": ".next-action, [data-id='next-action'], .action-needed"
-  },
-  "auth": {
-    "loginForm": ".login-form, [data-id='login']",
-    "loginBtn": "button[data-id='login-submit'], button[type='submit']"
+  "benefitsFinder": {
+    "url": "https://peak.my.site.com/peak/s/get-help-finding-benefits?language=en_US",
+    "categoryCheckboxes": "input[type='checkbox'][id^='checkbox-']",
+    "_categoryValues": "BF GC GJ SC GS PC GH MH SS CE PH PB GR (program-category codes, labels not yet mapped)"
   }
 }

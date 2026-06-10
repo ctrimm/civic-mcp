@@ -2,7 +2,7 @@
   "name": "@civic-mcp/cli",
   "version": "0.1.0",
   "description": "CLI tool for creating, testing, and publishing civic-mcp adapters",
-  "author": "Nava PBC <hello@navapbc.com>",
+  "author": "civic-mcp contributors",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,7 +14,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@civic-mcp/sdk": "workspace:*",

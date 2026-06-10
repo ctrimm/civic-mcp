@@ -1,0 +1,27 @@
+{
+  "id": "gov.medicare.eligibility",
+  "name": "Medicare Eligibility Calculator",
+  "version": "0.1.0",
+  "author": "civic-mcp contributors",
+  "description": "Drives the official Medicare.gov eligibility & premium calculator — estimate when someone becomes eligible for Medicare and what their Part A/B premiums may look like",
+  "homepage": "https://www.medicare.gov/eligibilitypremiumcalc",
+  "repository": "https://github.com/ctrimm/civic-mcp",
+  "license": "MIT",
+  "domains": [
+    "medicare.gov",
+    "www.medicare.gov"
+  ],
+  "tools": [
+    {
+      "name": "check_medicare_eligibility",
+      "securityLevel": "read_only",
+      "category": "eligibility"
+    }
+  ],
+  "permissions": {
+    "required": ["read:forms", "write:forms", "navigate"],
+    "optional": []
+  },
+  "trustLevel": "community",
+  "verified": false
+}

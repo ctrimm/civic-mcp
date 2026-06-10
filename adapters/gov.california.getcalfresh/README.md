@@ -1,51 +1,25 @@
-# California GetCalFresh Adapter
+# GetCalFresh Adapter
 
-WebMCP tools for [GetCalFresh](https://www.getcalfresh.org) — Code for America's portal for California CalFresh (SNAP) applications.
+Information about applying for CalFresh (SNAP) in California via
+[getcalfresh.org](https://www.getcalfresh.org) — a site operated by a
+third-party nonprofit (no affiliation with this project).
 
-- **Site**: https://www.getcalfresh.org
-- **Trust level**: Verified
-- **Author**: Nava PBC / Code for America
-- **Last verified**: 2026-02-17
+- **Author**: civic-mcp contributors
+- **Trust level**: Community
+- **Last verified**: 2026-06-10 (probe run [27269590345](https://github.com/ctrimm/civic-mcp/actions/runs/27269590345))
+
+## Reality check (2026-06-10)
+
+GetCalFresh **no longer hosts a prescreener or application**. The old
+`/en/prescreen` and `/en/apply` paths redirect to the informational homepage
+(zero forms), and every apply link routes to California's official portal at
+`benefitscal.com/ApplyForBenefits/begin/ABOVR`. The previous
+`check_eligibility` and `start_application` tools drove forms that no longer
+exist and were removed.
 
 ## Tools
 
-### `gov.california.getcalfresh.check_eligibility`
-
-Run the CalFresh pre-screener. **No login required.**
-
-| Input | Type | Required | Description |
-|---|---|---|---|
-| `zipCode` | string | ✅ | California ZIP code (must start with 9) |
-| `householdSize` | number | ✅ | People who buy/prepare food together |
-| `monthlyGrossIncome` | number | ✅ | Monthly gross income in dollars |
-| `hasElderly` | boolean | — | Household member 60+ or with disability |
-| `hasExpenses` | boolean | — | Housing or childcare expenses |
-
-**Output:** `eligible`, `estimatedMonthlyBenefit`, `grossIncomeLimit`, `message`, `zipCode`
-
-Results are cached for 24 hours per unique household profile.
-
-### `gov.california.getcalfresh.start_application`
-
-Begin a CalFresh application. **No login required** (account created during flow).
-
-| Input | Type | Required | Description |
-|---|---|---|---|
-| `firstName` | string | ✅ | |
-| `lastName` | string | ✅ | |
-| `phoneNumber` | string | ✅ | 10 digits, no formatting |
-| `address` | object | ✅ | `{street, city, zip}` |
-| `email` | string | — | Contact email |
-| `preferredLanguage` | string | — | `English`, `Spanish`, `Chinese`, `Vietnamese`, `Korean`, `Tagalog` |
-
-**Output:** `applicationId`, `nextStepUrl`, `note`
-
-## Testing
-
-```bash
-civic-mcp test
-```
-
-The `check_eligibility` test runs against the live site. The `start_application` test is skipped by default — run manually to avoid creating real applications.
-
-Last tested: 2026-02-17
+### `get_application_info` (read-only)
+Reports what getcalfresh.org currently says about the CalFresh application
+process, plus the official BenefitsCal apply URL. To actually apply, use the
+[`gov.california.benefitscal`](../gov.california.benefitscal) adapter.

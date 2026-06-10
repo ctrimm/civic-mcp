@@ -3,14 +3,15 @@
  *
  * Target sites:
  *   estimate_retirement_benefit  → https://www.ssa.gov/OACT/quickcalc/
- *   start_retirement_application → https://secure.ssa.gov/iClaim/rib
+ *   start_retirement_application → opens https://secure.ssa.gov/iClaim/rib and
+ *   hands the browser to the human (Login.gov / ID.me — never automated)
  *
  * The quick-calculator tool runs fully autonomously (no login, no CAPTCHA).
- * The application tool fills personal info autonomously, then calls
- * waitForHuman() when reCAPTCHA appears — the SSA has required a human
- * verification step before submitting retirement claims since 2023.
+ * Its selectors were VERIFIED against the live site on 2026-06-10 — all 8
+ * live tests passed in CI (github.com/ctrimm/civic-mcp actions run 27248526562).
  *
- * Selectors verified against the live site on 2026-02-18.
+ * The application tool is a pure human handoff: SSA requires Login.gov/ID.me
+ * identity verification, which must never be automated.
  */
 
 import type { AdapterModule, SandboxContext, ToolResult } from '@civic-mcp/sdk';
@@ -236,7 +237,7 @@ const adapter: AdapterModule = {
             };
           }
 
-          // Extract benefit estimates — IDs verified against live HTML 2026-02-19
+          // Extract benefit estimates (selector IDs unverified against live HTML)
           const at62  = await page.getText('td#est_early');
           const atFRA = await page.getText('td#est_fra');
           const at70  = await page.getText('td#est_late');
@@ -275,166 +276,209 @@ const adapter: AdapterModule = {
     },
 
     // ── start_retirement_application ────────────────────────────────────────
+    //
+    // The live run on 2026-06-10 (CI run 27248526562) proved the previous
+    // autonomous fill-and-submit flow was fiction: the selectors it filled do
+    // not exist on secure.ssa.gov/iClaim/rib. The real application requires
+    // identity verification (Login.gov / ID.me) and must be completed by the
+    // applicant. This tool now opens the official entry page and hands the
+    // browser to the human — it never fills or submits anything itself.
     {
       name: 'start_retirement_application',
       description:
-        'Begin a Social Security retirement benefits application on SSA.gov. ' +
-        'The adapter fills personal information autonomously, then pauses for a ' +
-        'human to solve the reCAPTCHA that SSA requires before submission. ' +
-        'Returns a confirmation number once the application is submitted.',
+        'Open the official SSA retirement benefits application and hand the ' +
+        'browser to the user. SSA requires identity verification (Login.gov or ' +
+        'ID.me), so the application itself must be completed by the applicant — ' +
+        'this tool navigates there and pauses until the user says they are done.',
 
+      inputSchema: { type: 'object', properties: {} },
+
+      async execute(_params: Record<string, never>, context: SandboxContext): Promise<ToolResult> {
+        const { page, notify } = context;
+
+        try {
+          notify.info('Opening the SSA retirement application…');
+
+          await page.navigate('https://secure.ssa.gov/iClaim/rib', {
+            timeout: 30_000,
+          });
+
+          await page.waitForHuman({
+            prompt:
+              'The SSA retirement application is open in the browser.\n\n' +
+              '1. Sign in with Login.gov or ID.me (or create an account).\n' +
+              '2. Complete the application steps yourself — it asks for your SSN ' +
+              'and other information that must come directly from you.\n' +
+              '3. Click "Done — continue" here when you have finished or want to stop.',
+            timeout: 30 * 60 * 1_000, // applications take a while
+          });
+
+          return {
+            success: true,
+            data: {
+              applicationUrl: page.currentUrl(),
+              note:
+                'Browser was handed to the user for the application. Nothing was ' +
+                'filled or submitted by the agent.',
+            },
+          };
+        } catch (err) {
+          // In headless test mode waitForHuman throws HumanRequiredError —
+          // propagate it so callers know a human (and a visible browser) is needed.
+          if (err instanceof Error && err.name === 'HumanRequiredError') throw err;
+          return {
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+            code: 'UNKNOWN',
+          };
+        }
+      },
+    },
+
+    // ── estimate_life_expectancy ─────────────────────────────────────────────
+    //
+    // SSA Life Expectancy Calculator — plain POST form, no login, no CAPTCHA.
+    // Form markup captured from the live page on 2026-06-10 (CI run 27268573761):
+    //   form[name=LEForm] action=/cgi-bin/longevity.cgi
+    //   select#sex (values: m, f) · select#monthofbirth (values 0–11)
+    //   select#dayofbirth (populated by JS after month is chosen)
+    //   select#yearofbirth (values 1908–2026)
+    {
+      name: 'estimate_life_expectancy',
+      description:
+        'Estimate average additional life expectancy using the SSA Life Expectancy ' +
+        'Calculator, based on sex and date of birth. Useful for retirement claiming-age ' +
+        'decisions. No login required. Returns what the SSA calculator reports.',
       inputSchema: {
         type: 'object',
         properties: {
-          dateOfBirth: {
+          sex: {
             type: 'string',
-            description: 'Date of birth in MM/DD/YYYY format (e.g. "01/15/1958")',
-            pattern: '^\\d{2}/\\d{2}/\\d{4}$',
+            description: 'Sex as used by SSA actuarial tables',
+            enum: ['male', 'female'],
           },
-          firstName: { type: 'string', description: 'Legal first name' },
-          lastName:  { type: 'string', description: 'Legal last name' },
-          phone: {
-            type: 'string',
-            description: 'Ten-digit US phone number (digits only)',
-            pattern: '^\\d{10}$',
-          },
-          claimMonth: {
-            type: 'string',
-            description: 'Month you want benefits to begin (e.g. "January 2026"). Defaults to the earliest eligible month.',
-          },
+          birthMonth: { type: 'number', description: 'Birth month (1–12)', minimum: 1, maximum: 12 },
+          birthDay:   { type: 'number', description: 'Birth day (1–31)', minimum: 1, maximum: 31 },
+          birthYear:  { type: 'number', description: 'Four-digit birth year', minimum: 1908, maximum: 2026 },
         },
-        required: ['dateOfBirth', 'firstName', 'lastName', 'phone'],
+        required: ['sex', 'birthMonth', 'birthDay', 'birthYear'],
       },
 
       async execute(
-        params: {
-          dateOfBirth: string;
-          firstName: string;
-          lastName: string;
-          phone: string;
-          claimMonth?: string;
-        },
+        params: { sex: 'male' | 'female'; birthMonth: number; birthDay: number; birthYear: number },
         context: SandboxContext,
       ): Promise<ToolResult> {
-        const { page, notify, storage } = context;
-
+        const { page, utils, notify } = context;
         try {
-          notify.info('Navigating to SSA retirement application…');
-
-          // ── Step 1: Landing page — check eligibility ──────────────────────
-          await page.navigate('https://secure.ssa.gov/iClaim/rib', {
-            waitForSelector: 'input#birthDate, input[name="birthDate"], form, h1',
+          notify.info('Loading SSA Life Expectancy Calculator…');
+          await page.navigate('https://www.ssa.gov/OACT/population/longevity.html', {
+            waitForSelector: 'form[name="LEForm"]',
             timeout: 20_000,
           });
 
-          // Enter date of birth to confirm age eligibility
-          await page.fillField(
-            'input#birthDate, input[name="birthDate"], input[id*="DateOfBirth"]',
-            params.dateOfBirth,
-          );
-
-          await page.click(
-            'button#continueBtn, input[type="submit"]#next, button[type="submit"]',
-            { waitForNavigation: true, timeout: 15_000 },
-          );
-
-          // ── Step 2: Personal information form ─────────────────────────────
-          await page.waitForSelector(
-            'input#firstName, input[name="firstName"], form[id*="personal"]',
-            { timeout: 15_000 },
-          );
-
-          notify.info('Filling personal information…');
-
-          await page.fillField(
-            'input#firstName, input[name="firstName"], input[id*="FirstName"]',
-            params.firstName,
-          );
-          await page.fillField(
-            'input#lastName, input[name="lastName"], input[id*="LastName"]',
-            params.lastName,
-          );
-          await page.fillField(
-            'input#phone, input[name="phone"], input[type="tel"]',
-            params.phone,
-          );
-
-          if (params.claimMonth) {
-            const hasClaimField = await page.exists(
-              'input[name="claimMonth"], select[name="claimMonth"], input[id*="claimMonth"]',
-            );
-            if (hasClaimField) {
-              await page.fillField(
-                'input[name="claimMonth"], input[id*="claimMonth"]',
-                params.claimMonth,
-              );
-            }
+          await page.selectOption('select#sex', params.sex === 'male' ? 'm' : 'f');
+          // Month values are 0-based on the live form (January = "0")
+          await page.selectOption('select#monthofbirth', String(params.birthMonth - 1));
+          // Selecting a month triggers MonthChange(), which populates the day list
+          await utils.sleep(400);
+          try {
+            await page.selectOption('select#dayofbirth', String(params.birthDay));
+          } catch {
+            // Some browsers render the JS-populated options with label-only values
+            await page.selectOption('select#dayofbirth', String(params.birthDay), { byText: true });
           }
+          await page.selectOption('select#yearofbirth', String(params.birthYear));
 
-          // ── Step 3: reCAPTCHA — human required ────────────────────────────
-          //
-          // SSA requires a reCAPTCHA verification before the final submit
-          // button becomes active. The iframe appears after the personal-info
-          // fields are filled. We cannot solve it programmatically, so we
-          // suspend here and let the user solve it in the browser window.
-          const hasCaptcha = await page.exists(
-            'iframe[title*="reCAPTCHA"], iframe[src*="recaptcha"], .g-recaptcha',
-          );
-
-          if (hasCaptcha) {
-            notify.warn('reCAPTCHA detected — pausing for human verification.');
-
-            await page.waitForHuman({
-              prompt:
-                'SSA requires a reCAPTCHA before submitting your application.\n\n' +
-                '1. Look at the browser window — a "I\'m not a robot" checkbox or image challenge should be visible.\n' +
-                '2. Complete the reCAPTCHA challenge.\n' +
-                '3. Click "Done — continue" here once the checkmark appears.',
-              timeout: 10 * 60 * 1_000, // 10 minutes — image challenges can take a moment
-            });
-
-            notify.info('Verification complete — submitting application…');
-          }
-
-          // ── Step 4: Submit ─────────────────────────────────────────────────
-          await page.click(
-            'input[type="submit"]#submitBtn, button#iAgreeBtn, button[type="submit"].submit, button.submit-btn',
-            { waitForNavigation: true, timeout: 20_000 },
-          );
-
-          // ── Step 5: Confirmation ───────────────────────────────────────────
-          await page.waitForSelector(
-            '#iClaim-confirm, .confirmation-number, [id*="confirmation"], h2.success',
-            { timeout: 20_000 },
-          );
-
-          const confirmationNumber = await page.getText(
-            '.confirmation-number, #confirmationNumber, [data-testid="confirmation-number"]',
-          );
-          const nextStepsText = await page.getText(
-            '.next-steps, #nextSteps, .what-happens-next',
-          );
-
-          const result = {
-            confirmationNumber: confirmationNumber ?? 'See page for confirmation number',
-            nextSteps: nextStepsText ?? 'SSA will mail a letter within 5–7 business days.',
-            applicationUrl: page.currentUrl(),
-          };
-
-          await storage.set('last_retirement_application', {
-            ...result,
-            submittedAt: new Date().toISOString(),
-            applicant: `${params.firstName} ${params.lastName}`,
+          await page.click('form[name="LEForm"] input[type="submit"]', {
+            waitForNavigation: true,
+            timeout: 20_000,
           });
 
-          notify.info(`Application submitted! Confirmation: ${result.confirmationNumber}`);
-          return { success: true, data: result };
+          const resultUrl = page.currentUrl();
+          const resultText =
+            (await page.getText('main')) ?? (await page.getText('body')) ?? '';
 
+          if (!resultUrl.includes('longevity')) {
+            return {
+              success: false,
+              error: `Expected the longevity.cgi results page, landed on ${resultUrl}`,
+              code: 'SITE_CHANGED',
+            };
+          }
+
+          // Report what the SITE says — no local actuarial math
+          return {
+            success: true,
+            data: {
+              siteReportedResults: resultText.replace(/\s+/g, ' ').trim().slice(0, 2_500),
+              resultUrl,
+              source: 'SSA Life Expectancy Calculator — https://www.ssa.gov/OACT/population/longevity.html',
+              note: 'Population averages from SSA actuarial tables — not a prediction for any individual.',
+            },
+          };
         } catch (err) {
           return {
             success: false,
             error: err instanceof Error ? err.message : String(err),
-            code: err instanceof Error && err.message.includes('not found') ? 'SITE_CHANGED' : 'UNKNOWN',
+            code: 'UNKNOWN',
+          };
+        }
+      },
+    },
+
+    // ── find_local_office ────────────────────────────────────────────────────
+    //
+    // SSA Field Office Locator. secure.ssa.gov/ICON redirects to
+    // www.ssa.gov/locator (probe 2026-06-10): search box is
+    // input#office-locator-desktop with a submit button inside <uef-button>.
+    // Results-page selectors are best-effort.
+    {
+      name: 'find_local_office',
+      description:
+        'Find the nearest Social Security field office by ZIP code, city, or address ' +
+        'using the official SSA office locator. No login required.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          location: {
+            type: 'string',
+            description: 'ZIP code, city + state, or street address (e.g. "21201" or "Baltimore, MD")',
+          },
+        },
+        required: ['location'],
+      },
+
+      async execute(params: { location: string }, context: SandboxContext): Promise<ToolResult> {
+        const { page, utils, notify } = context;
+        try {
+          notify.info('Searching the SSA office locator…');
+          await page.navigate('https://www.ssa.gov/locator', {
+            waitForSelector: '#office-locator-desktop',
+            timeout: 25_000,
+          });
+
+          await page.fillField('#office-locator-desktop', params.location);
+          await page.click('uef-textbox button[type="submit"]', { timeout: 15_000 });
+          // Results render client-side after the search
+          await utils.sleep(2_500);
+          await page.waitForSelector('main', { timeout: 20_000 });
+
+          const resultText =
+            (await page.getText('main')) ?? (await page.getText('body')) ?? '';
+
+          return {
+            success: true,
+            data: {
+              siteReportedResults: resultText.replace(/\s+/g, ' ').trim().slice(0, 2_500),
+              resultUrl: page.currentUrl(),
+              source: 'SSA Field Office Locator — https://www.ssa.gov/locator',
+            },
+          };
+        } catch (err) {
+          return {
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+            code: 'UNKNOWN',
           };
         }
       },

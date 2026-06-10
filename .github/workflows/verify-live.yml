@@ -1,0 +1,68 @@
+name: Verify Adapter (live site)
+
+# Manually-triggered verification of an adapter against the real government
+# website. GitHub-hosted runners have full internet access, so this is how
+# selectors get verified when the dev environment can't reach the site.
+#
+# Two outputs:
+#   1. "Dump live form HTML" prints the page's actual form markup to the log,
+#      so stale selectors can be fixed against real data.
+#   2. "Run live adapter tests" executes the adapter's @live vitest suite
+#      end-to-end with Playwright.
+
+on:
+  workflow_dispatch:
+    inputs:
+      adapter:
+        description: 'Adapter ID (directory name under adapters/)'
+        required: true
+        default: 'gov.ssa.retirement'
+      probe_url:
+        description: 'Page whose form HTML to dump into the log'
+        required: false
+        default: 'https://secure.ssa.gov/iClaim/rib'
+  # Push trigger so verification can be driven from environments that can
+  # push but lack actions:write (e.g. Claude Code sessions). Runs with the
+  # default adapter/probe_url below.
+  push:
+    branches: ['claude/**']
+    paths:
+      - '.github/workflows/verify-live.yml'
+      - 'adapters/**'
+      - 'packages/testing/**'
+
+env:
+  ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement gov.california.getcalfresh gov.california.benefitscal gov.medicare.eligibility gov.irs.withholding gov.studentaid.estimator gov.michigan.bridges gov.colorado.peak' }}
+  PROBE_URL: ${{ inputs.probe_url || 'https://peak.my.site.com/peak/s/afb-welcome https://peak.my.site.com/peak/s/benefit-information https://peak.my.site.com/peak/s/get-help-finding-benefits' }}
+
+jobs:
+  verify:
+    name: Verify adapter against live site
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @civic-mcp/testing exec playwright install --with-deps chromium
+
+      - name: Dump live form HTML
+        continue-on-error: true
+        run: pnpm --filter @civic-mcp/testing exec node scripts/dump-form-html.mjs "$PROBE_URL"
+
+      - name: Run live adapter tests
+        run: |
+          args=""
+          for a in $ADAPTER; do args="$args adapters/$a"; done
+          pnpm exec vitest run $args --config vitest.config.mts

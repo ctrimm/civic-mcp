@@ -6,7 +6,8 @@
  *
  * Programs: SNAP (SNAP), TANF (Temporary Assistance), Medicaid, CHIP
  *
- * Selectors verified against the live site on 2026-02-17.
+ * Selectors are best-effort and UNVERIFIED against the live site.
+ * Verify and update before relying on this adapter.
  * YourTexasBenefits uses a React SPA — wait for hydration after navigation.
  *
  * Reference: CONTRIBUTING.md walkthrough

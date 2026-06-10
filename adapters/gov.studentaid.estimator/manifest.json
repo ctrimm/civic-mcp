@@ -1,0 +1,27 @@
+{
+  "id": "gov.studentaid.estimator",
+  "name": "Federal Student Aid Estimator",
+  "version": "0.1.0",
+  "author": "civic-mcp contributors",
+  "description": "Opens the official Federal Student Aid Estimator (studentaid.gov) — estimates federal aid eligibility before filling out the FAFSA. studentaid.gov blocks datacenter IPs, so this adapter hands the browser to the user rather than automating the wizard",
+  "homepage": "https://studentaid.gov/aid-estimator",
+  "repository": "https://github.com/ctrimm/civic-mcp",
+  "license": "MIT",
+  "domains": [
+    "studentaid.gov",
+    "www.studentaid.gov"
+  ],
+  "tools": [
+    {
+      "name": "open_aid_estimator",
+      "securityLevel": "read_only",
+      "category": "eligibility"
+    }
+  ],
+  "permissions": {
+    "required": ["navigate", "human-in-the-loop"],
+    "optional": []
+  },
+  "trustLevel": "community",
+  "verified": false
+}

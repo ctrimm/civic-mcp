@@ -1,0 +1,28 @@
+{
+  "id": "gov.irs.withholding",
+  "name": "IRS Tax Withholding Estimator",
+  "version": "0.1.0",
+  "author": "civic-mcp contributors",
+  "description": "Drives the official IRS Tax Withholding Estimator — checks W-4 withholding against expected tax. Completes the About-you step autonomously and reports what the estimator asks next",
+  "homepage": "https://apps.irs.gov/app/tax-withholding-estimator",
+  "repository": "https://github.com/ctrimm/civic-mcp",
+  "license": "MIT",
+  "domains": [
+    "apps.irs.gov",
+    "www.irs.gov",
+    "irs.gov"
+  ],
+  "tools": [
+    {
+      "name": "start_withholding_estimate",
+      "securityLevel": "read_only",
+      "category": "info"
+    }
+  ],
+  "permissions": {
+    "required": ["read:forms", "write:forms", "navigate"],
+    "optional": []
+  },
+  "trustLevel": "community",
+  "verified": false
+}

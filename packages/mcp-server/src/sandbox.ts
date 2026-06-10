@@ -2,7 +2,8 @@
  * Playwright-backed SandboxContext for the MCP server.
  *
  * Key differences from the testing harness:
- *   - StorageAPI: persists to ~/.civic-mcp/storage/{adapterId}.json
+ *   - StorageAPI: persists to the active identity's storage dir
+ *     (~/.civic-mcp/identities/<name>/storage/{adapterId}.json)
  *   - NotifyAPI: writes to stderr (never stdout — that's reserved for JSON-RPC)
  *   - waitForHuman (headless): opens a local HTTP server, prints the URL to
  *     stderr so the operator (or Claude Desktop's log panel) can see it, then
@@ -13,7 +14,6 @@
 import { type Page } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { homedir } from 'node:os';
 import { createServer } from 'node:http';
 import type {
   SandboxContext,
@@ -28,51 +28,54 @@ import type {
   SelectOptions,
   ClickOptions,
   WaitForHumanOptions,
+  IdentityAPI,
 } from '@civic-mcp/sdk';
 import { isUrlAllowed, sanitizeFieldValue, jsonByteSize, MAX_STORAGE_BYTES } from '@civic-mcp/sdk';
 
 // ---------------------------------------------------------------------------
 // File-system StorageAPI
 // ---------------------------------------------------------------------------
-// Stores each adapter's data as a single JSON file at:
-//   ~/.civic-mcp/storage/{adapterId}.json
+// Stores each adapter's data as a single JSON file inside the active
+// identity's storage directory:
+//   ~/.civic-mcp/identities/<name>/storage/{adapterId}.json
 // This matches chrome.storage.local semantics (key/value, same quota).
 
-const STORAGE_ROOT = join(homedir(), '.civic-mcp', 'storage');
-
-async function ensureStorageDir() {
-  await mkdir(STORAGE_ROOT, { recursive: true });
-}
-
-function storageFile(adapterId: string): string {
+function storageFile(storageDir: string, adapterId: string): string {
   // Sanitise id — only allow alphanumeric, dots, and hyphens
   const safe = adapterId.replace(/[^a-zA-Z0-9.-]/g, '_');
-  return join(STORAGE_ROOT, `${safe}.json`);
+  return join(storageDir, `${safe}.json`);
 }
 
-async function readStore(adapterId: string): Promise<Record<string, unknown>> {
+async function readStore(storageDir: string, adapterId: string): Promise<Record<string, unknown>> {
   try {
-    const raw = await readFile(storageFile(adapterId), 'utf-8');
+    const raw = await readFile(storageFile(storageDir, adapterId), 'utf-8');
     return JSON.parse(raw) as Record<string, unknown>;
   } catch {
     return {};
   }
 }
 
-async function writeStore(adapterId: string, store: Record<string, unknown>): Promise<void> {
-  await ensureStorageDir();
-  await writeFile(storageFile(adapterId), JSON.stringify(store, null, 2), 'utf-8');
+async function writeStore(
+  storageDir: string,
+  adapterId: string,
+  store: Record<string, unknown>,
+): Promise<void> {
+  await mkdir(storageDir, { recursive: true, mode: 0o700 });
+  await writeFile(storageFile(storageDir, adapterId), JSON.stringify(store, null, 2), {
+    encoding: 'utf-8',
+    mode: 0o600,
+  });
 }
 
-function makeStorageAPI(adapterId: string): StorageAPI {
+function makeStorageAPI(storageDir: string, adapterId: string): StorageAPI {
   return {
     async get<T>(key: string): Promise<T | null> {
-      const store = await readStore(adapterId);
+      const store = await readStore(storageDir, adapterId);
       return (store[key] as T) ?? null;
     },
 
     async set<T>(key: string, value: T): Promise<void> {
-      const store = await readStore(adapterId);
+      const store = await readStore(storageDir, adapterId);
       // Enforce same 100KB quota as the extension
       const existingBytes = Object.entries(store)
         .filter(([k]) => k !== key)
@@ -82,17 +85,17 @@ function makeStorageAPI(adapterId: string): StorageAPI {
         throw new Error(`Storage quota exceeded for adapter "${adapterId}" (max ${MAX_STORAGE_BYTES / 1024} KB)`);
       }
       store[key] = value;
-      await writeStore(adapterId, store);
+      await writeStore(storageDir, adapterId, store);
     },
 
     async delete(key: string): Promise<void> {
-      const store = await readStore(adapterId);
+      const store = await readStore(storageDir, adapterId);
       delete store[key];
-      await writeStore(adapterId, store);
+      await writeStore(storageDir, adapterId, store);
     },
 
     async clear(): Promise<void> {
-      await writeStore(adapterId, {});
+      await writeStore(storageDir, adapterId, {});
     },
   };
 }
@@ -326,31 +329,35 @@ const UTILS: UtilsAPI = {
 // Public factory
 // ---------------------------------------------------------------------------
 
-export interface SandboxHandle {
-  context: SandboxContext;
-  /** Call when the tool call is done — closes the Playwright page */
-  dispose(): Promise<void>;
+export interface SandboxOptions {
+  timeout?: number;
+  headed?: boolean;
+  /** Directory for adapter-scoped storage (the identity's storage dir) */
+  storageDir: string;
+  /** Read-only identity access exposed to the adapter */
+  identity?: IdentityAPI;
 }
 
-export async function createSandboxForTool(
+/**
+ * Build a SandboxContext bound to an existing Playwright page.
+ * Page lifecycle is owned by the caller — pages stay open between tool
+ * calls so multi-step flows (and logged-in sessions) survive.
+ */
+export function createSandboxForTool(
   pw: Page,
   manifest: AdapterManifest,
-  opts: { timeout?: number; headed?: boolean } = {},
-): Promise<SandboxHandle> {
+  opts: SandboxOptions,
+): SandboxContext {
   const timeout = opts.timeout ?? 30_000;
   const headed = opts.headed ?? false;
 
   const context: SandboxContext = {
     page:    makePageAPI(pw, manifest, timeout, headed),
-    storage: makeStorageAPI(manifest.id),
+    storage: makeStorageAPI(opts.storageDir, manifest.id),
     notify:  makeNotifyAPI(manifest.id),
     utils:   UTILS,
   };
+  if (opts.identity) context.identity = opts.identity;
 
-  return {
-    context,
-    async dispose() {
-      await pw.close();
-    },
-  };
+  return context;
 }

@@ -220,38 +220,30 @@ describe('gov.ssa.retirement — estimate_retirement_benefit', () => {
 });
 
 // ---------------------------------------------------------------------------
-// start_retirement_application — requires human for reCAPTCHA
+// start_retirement_application — pure human handoff (Login.gov / ID.me)
 // ---------------------------------------------------------------------------
 
 describe('gov.ssa.retirement — start_retirement_application', () => {
   it(
-    'fills personal info and pauses for reCAPTCHA (headed) / skips gracefully (headless)',
-    { timeout: 15 * 60 * 1_000 }, // 15 min — human needs time to solve CAPTCHA
+    'opens the application and hands off to the human (headed) / raises HumanRequiredError (headless)',
+    { timeout: 35 * 60 * 1_000 }, // headed: the human completes the application
     async () => {
       try {
-        const result = await harness.testTool('start_retirement_application', {
-          dateOfBirth: '01/15/1958',
-          firstName:   'Jane',
-          lastName:    'Demo',
-          phone:       '5555550100',
-        });
+        const result = await harness.testTool('start_retirement_application', {});
 
-        // If we reach here, we're running headed and the human solved the CAPTCHA
+        // Headed mode: the human clicked "Done — continue"
         expect(result).toBeToolSuccess();
         if (result.success) {
-          expect(result.data).toHaveProperty('confirmationNumber');
           expect(result.data).toHaveProperty('applicationUrl');
-          console.log('\n✅ Application submitted!');
-          console.log('   Confirmation:', result.data['confirmationNumber']);
-          console.log('   URL:         ', result.data['applicationUrl']);
+          expect(result.data['note']).toContain('Nothing was filled or submitted');
         }
       } catch (err) {
         if (err instanceof HumanRequiredError) {
-          // Headless mode — expected. Log clearly for CI output.
+          // Headless mode — expected: the tool's only job is the human handoff.
           console.log(
-            '\n⏭  Skipped: start_retirement_application requires a human to solve the',
-            `reCAPTCHA step.\n   Prompt shown to user: "${err.humanPrompt}"`,
-            '\n   Run with CIVIC_MCP_HEADED=1 to execute this tool interactively.',
+            '\n⏭  Skipped: start_retirement_application is a human handoff tool.',
+            `\n   Prompt shown to user: "${err.humanPrompt.split('\n')[0]}…"`,
+            '\n   Run with CIVIC_MCP_HEADED=1 to execute interactively.',
           );
           return; // pass the test
         }
@@ -259,4 +251,59 @@ describe('gov.ssa.retirement — start_retirement_application', () => {
       }
     },
   );
+});
+
+// ---------------------------------------------------------------------------
+// estimate_life_expectancy — fully autonomous, no human needed
+// ---------------------------------------------------------------------------
+
+describe('gov.ssa.retirement — estimate_life_expectancy', () => {
+  it('returns SSA-reported life expectancy for a male born in 1960', { timeout: 45_000 }, async () => {
+    const result = await harness.testTool('estimate_life_expectancy', {
+      sex: 'male',
+      birthMonth: 3,
+      birthDay: 15,
+      birthYear: 1960,
+    });
+
+    expect(result).toBeToolSuccess();
+    if (result.success) {
+      expect(result.data['resultUrl']).toContain('longevity');
+      const text = String(result.data['siteReportedResults']).toLowerCase();
+      expect(text).toContain('life expectancy');
+    }
+  });
+
+  it('returns SSA-reported life expectancy for a female born in 1985', { timeout: 45_000 }, async () => {
+    const result = await harness.testTool('estimate_life_expectancy', {
+      sex: 'female',
+      birthMonth: 11,
+      birthDay: 2,
+      birthYear: 1985,
+    });
+
+    expect(result).toBeToolSuccess();
+    if (result.success) {
+      expect(String(result.data['siteReportedResults']).length).toBeGreaterThan(50);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// find_local_office — fully autonomous, no human needed
+// ---------------------------------------------------------------------------
+
+describe('gov.ssa.retirement — find_local_office', () => {
+  it('finds an office for a Baltimore ZIP code', { timeout: 60_000 }, async () => {
+    const result = await harness.testTool('find_local_office', {
+      location: '21201',
+    });
+
+    expect(result).toBeToolSuccess();
+    if (result.success) {
+      const text = String(result.data['siteReportedResults']).toLowerCase();
+      expect(text.length).toBeGreaterThan(50);
+      expect(text).toContain('office');
+    }
+  });
 });

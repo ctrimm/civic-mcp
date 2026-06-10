@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-02-18T00:00:00Z",
+  "updatedAt": "2026-06-10T00:00:00Z",
   "plugins": [
     {
       "id": "gov.ssa.retirement",
@@ -8,14 +8,22 @@
       "description": "Estimate monthly Social Security retirement benefits and begin a retirement application on SSA.gov. Demonstrates waitForHuman() for reCAPTCHA handling.",
       "latestVersion": "0.1.0",
       "category": "federal",
-      "tags": ["Social Security", "Retirement", "SSA", "Federal", "Benefits"],
-      "trustLevel": "verified",
-      "verified": true,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.ssa.retirement-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.ssa.retirement/manifest.json",
-      "updatedAt": "2026-02-18T00:00:00Z",
+      "tags": [
+        "Social Security",
+        "Retirement",
+        "SSA",
+        "Federal",
+        "Benefits"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.ssa.retirement/manifest.json",
+      "updatedAt": "2026-06-10T00:00:00Z",
       "installs": 0,
-      "rating": 0
+      "rating": 0,
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.ssa.retirement",
+      "lastVerified": "2026-06-10",
+      "verificationEvidence": "https://github.com/ctrimm/civic-mcp/actions/runs/27248526562"
     },
     {
       "id": "gov.colorado.peak",
@@ -23,15 +31,23 @@
       "description": "WebMCP tools for Colorado SNAP, Medicaid, and Colorado Works applications via peak.my.site.com",
       "latestVersion": "0.1.0",
       "category": "state_benefits",
-      "tags": ["SNAP", "Medicaid", "Colorado Works", "CHP+", "Colorado"],
-      "trustLevel": "verified",
-      "verified": true,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.colorado.peak-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.colorado.peak/manifest.json",
-      "updatedAt": "2026-02-17T00:00:00Z",
+      "tags": [
+        "SNAP",
+        "Medicaid",
+        "Colorado Works",
+        "CHP+",
+        "Colorado"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.colorado.peak/manifest.json",
+      "updatedAt": "2026-06-10T00:00:00Z",
       "installs": 0,
       "rating": 0,
-      "state": "CO"
+      "state": "CO",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.colorado.peak",
+      "lastVerified": "2026-06-10",
+      "verificationEvidence": "https://github.com/ctrimm/civic-mcp/actions/runs/27285291893"
     },
     {
       "id": "gov.california.getcalfresh",
@@ -39,12 +55,39 @@
       "description": "WebMCP tools for California CalFresh (SNAP) eligibility screening and application via GetCalFresh",
       "latestVersion": "0.1.0",
       "category": "state_benefits",
-      "tags": ["CalFresh", "SNAP", "Food Assistance", "California"],
-      "trustLevel": "verified",
-      "verified": true,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.california.getcalfresh-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.california.getcalfresh/manifest.json",
+      "tags": [
+        "CalFresh",
+        "SNAP",
+        "Food Assistance",
+        "California"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.california.getcalfresh/manifest.json",
       "updatedAt": "2026-02-17T00:00:00Z",
+      "installs": 0,
+      "rating": 0,
+      "state": "CA",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.california.getcalfresh"
+    },
+    {
+      "id": "gov.california.benefitscal",
+      "name": "California BenefitsCal",
+      "description": "Tools for BenefitsCal \u2014 California's official portal for CalFresh (SNAP), CalWORKs, and Medi-Cal: eligibility pre-screening, case status, and application start",
+      "latestVersion": "0.1.0",
+      "category": "state_benefits",
+      "tags": [
+        "CalFresh",
+        "SNAP",
+        "CalWORKs",
+        "Medi-Cal",
+        "California"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.california.benefitscal/manifest.json",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.california.benefitscal",
+      "updatedAt": "2026-06-10T00:00:00Z",
       "installs": 0,
       "rating": 0,
       "state": "CA"
@@ -55,15 +98,22 @@
       "description": "WebMCP tools for Michigan SNAP, Medicaid, and Cash Assistance applications via MI Bridges",
       "latestVersion": "0.1.0",
       "category": "state_benefits",
-      "tags": ["SNAP", "Medicaid", "Cash Assistance", "Michigan"],
+      "tags": [
+        "SNAP",
+        "Medicaid",
+        "Cash Assistance",
+        "Michigan"
+      ],
       "trustLevel": "community",
       "verified": false,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.michigan.bridges-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.michigan.bridges/manifest.json",
-      "updatedAt": "2026-02-17T00:00:00Z",
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.michigan.bridges/manifest.json",
+      "updatedAt": "2026-06-10T00:00:00Z",
       "installs": 0,
       "rating": 0,
-      "state": "MI"
+      "state": "MI",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.michigan.bridges",
+      "lastVerified": "2026-06-10",
+      "verificationEvidence": "https://github.com/ctrimm/civic-mcp/actions/runs/27285291893"
     },
     {
       "id": "gov.texas.yourtexasbenefits",
@@ -71,22 +121,88 @@
       "description": "WebMCP tools for Texas SNAP, TANF, Medicaid, and CHIP applications via YourTexasBenefits",
       "latestVersion": "0.1.0",
       "category": "state_benefits",
-      "tags": ["SNAP", "TANF", "Medicaid", "CHIP", "Texas"],
+      "tags": [
+        "SNAP",
+        "TANF",
+        "Medicaid",
+        "CHIP",
+        "Texas"
+      ],
       "trustLevel": "community",
       "verified": false,
-      "downloadUrl": "https://github.com/civic-mcp/plugin-registry/releases/download/gov.texas.yourtexasbenefits-0.1.0/plugin.zip",
-      "manifestUrl": "https://raw.githubusercontent.com/civic-mcp/civic-mcp/main/adapters/gov.texas.yourtexasbenefits/manifest.json",
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.texas.yourtexasbenefits/manifest.json",
       "updatedAt": "2026-02-17T00:00:00Z",
       "installs": 0,
       "rating": 0,
-      "state": "TX"
+      "state": "TX",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.texas.yourtexasbenefits"
+    },
+    {
+      "id": "gov.medicare.eligibility",
+      "name": "Medicare Eligibility Calculator",
+      "description": "Official Medicare.gov eligibility & premium calculator \u2014 eligibility dates and premium estimates",
+      "latestVersion": "0.1.0",
+      "category": "federal_services",
+      "tags": [
+        "Medicare",
+        "health",
+        "seniors",
+        "eligibility"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.medicare.eligibility/manifest.json",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.medicare.eligibility",
+      "updatedAt": "2026-06-10T00:00:00Z",
+      "installs": 0,
+      "rating": 0
+    },
+    {
+      "id": "gov.irs.withholding",
+      "name": "IRS Tax Withholding Estimator",
+      "description": "Official IRS Tax Withholding Estimator \u2014 checks W-4 withholding against expected tax",
+      "latestVersion": "0.1.0",
+      "category": "federal_services",
+      "tags": [
+        "IRS",
+        "taxes",
+        "W-4",
+        "withholding"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.irs.withholding/manifest.json",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.irs.withholding",
+      "updatedAt": "2026-06-10T00:00:00Z",
+      "installs": 0,
+      "rating": 0
+    },
+    {
+      "id": "gov.studentaid.estimator",
+      "name": "Federal Student Aid Estimator",
+      "description": "Official Federal Student Aid Estimator (pre-FAFSA aid preview) \u2014 human handoff, studentaid.gov blocks datacenter IPs",
+      "latestVersion": "0.1.0",
+      "category": "federal_services",
+      "tags": [
+        "FAFSA",
+        "student aid",
+        "Pell Grant",
+        "education"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.studentaid.estimator/manifest.json",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.studentaid.estimator",
+      "updatedAt": "2026-06-10T00:00:00Z",
+      "installs": 0,
+      "rating": 0
     }
   ],
   "categories": [
     {
       "id": "state_benefits",
       "name": "State Benefits Programs",
-      "count": 4
+      "count": 5
     },
     {
       "id": "federal",

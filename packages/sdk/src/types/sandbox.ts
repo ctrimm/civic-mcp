@@ -152,4 +152,10 @@ export interface SandboxContext {
   storage: StorageAPI;
   notify: NotifyAPI;
   utils: UtilsAPI;
+  /**
+   * Read-only access to the active portable identity (applicant profile).
+   * Only available in hosts that support identities (the MCP server);
+   * undefined in the extension and the bare test harness.
+   */
+  identity?: import('./identity.js').IdentityAPI;
 }
