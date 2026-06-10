@@ -121,7 +121,7 @@ verified against the live site via the
 | [`gov.california.benefitscal`](adapters/gov.california.benefitscal) | California | CalFresh, CalWORKs, Medi-Cal (official portal) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)) |
 | [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh info (site no longer hosts applications — routes to BenefitsCal) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)) |
 | [`gov.colorado.peak`](adapters/gov.colorado.peak) | Colorado | SNAP, Medicaid, Colorado Works, CHP+ | 🧪 Community (selectors unverified) |
-| [`gov.michigan.bridges`](adapters/gov.michigan.bridges) | Michigan | SNAP, Medicaid, Cash | 🧪 Community (selectors unverified) |
+| [`gov.michigan.bridges`](adapters/gov.michigan.bridges) | Michigan | Resource explorer, guest application, status (MI Bridges) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27271735544)) |
 | [`gov.texas.yourtexasbenefits`](adapters/gov.texas.yourtexasbenefits) | Texas | SNAP, TANF, Medicaid, CHIP | 🧪 Community (selectors unverified) |
 
 ### Federal Services

@@ -32,7 +32,7 @@ on:
       - 'packages/testing/**'
 
 env:
-  ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement gov.california.getcalfresh gov.california.benefitscal gov.medicare.eligibility gov.irs.withholding gov.studentaid.estimator gov.michigan.bridges' }}
+  ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement gov.california.getcalfresh gov.california.benefitscal gov.medicare.eligibility gov.irs.withholding gov.studentaid.estimator gov.michigan.bridges gov.colorado.peak' }}
   PROBE_URL: ${{ inputs.probe_url || 'https://peak.my.site.com/peak/s/afb-welcome https://peak.my.site.com/peak/s/benefit-information https://peak.my.site.com/peak/s/get-help-finding-benefits' }}
 
 jobs:
