@@ -114,9 +114,52 @@ async function getBrowserContext(): Promise<BrowserContext> {
     viewport: { width: 1280, height: 800 },
     args: ['--enable-experimental-web-platform-features'],
   });
+
+  // EXPERIMENTAL: WebMCP polyfill stub. Injects a minimal
+  // navigator.modelContext into every page so we can observe real-world
+  // WebMCP adoption: when a government site starts registering its own
+  // tools, it shows up in our logs. Registered tools are recorded but NOT
+  // yet re-exposed over MCP — that lands when sites actually ship WebMCP.
+  await browserContext.exposeBinding(
+    '__civicMcpWebMcpObserved',
+    (source, toolName: unknown, description: unknown) => {
+      process.stderr.write(
+        `[civic-mcp] WebMCP: page ${source.page.url()} registered tool ` +
+          `"${String(toolName)}" (${String(description).slice(0, 80)}) — ` +
+          `captured by polyfill stub, not yet bridged to MCP\n`,
+      );
+    },
+  );
+  // (Passed as a string: this code runs in the page, where DOM globals exist,
+  // but is compiled here under Node's type environment.)
+  await browserContext.addInitScript(`
+    (() => {
+      if (navigator.modelContext) return; // real WebMCP available — don't shadow it
+      const registered = [];
+      Object.defineProperty(navigator, 'modelContext', {
+        configurable: true,
+        value: {
+          __civicMcpPolyfill: true,
+          registerTool(tool) {
+            registered.push(tool);
+            if (window.__civicMcpWebMcpObserved) {
+              window.__civicMcpWebMcpObserved(
+                (tool && tool.name) || '<unnamed>',
+                (tool && tool.description) || '',
+              );
+            }
+          },
+          get tools() {
+            return registered;
+          },
+        },
+      });
+    })();
+  `);
+
   process.stderr.write(
     `[civic-mcp] Chromium launched (${HEADED ? 'headed' : 'headless'}, ` +
-    `profile: ${identity.browserProfileDir})\n`,
+    `profile: ${identity.browserProfileDir}, WebMCP polyfill stub active)\n`,
   );
   return browserContext;
 }
