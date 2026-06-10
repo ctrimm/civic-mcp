@@ -21,10 +21,24 @@ on:
         description: 'Page whose form HTML to dump into the log'
         required: false
         default: 'https://www.ssa.gov/OACT/quickcalc/'
+  # Push trigger so verification can be driven from environments that can
+  # push but lack actions:write (e.g. Claude Code sessions). Runs with the
+  # default adapter/probe_url below.
+  push:
+    branches: ['claude/**']
+    paths:
+      - '.github/workflows/verify-live.yml'
+      - 'scripts/dump-form-html.mjs'
+      - 'adapters/gov.ssa.retirement/**'
+      - 'packages/testing/**'
+
+env:
+  ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement' }}
+  PROBE_URL: ${{ inputs.probe_url || 'https://www.ssa.gov/OACT/quickcalc/' }}
 
 jobs:
   verify:
-    name: Verify ${{ inputs.adapter }}
+    name: Verify adapter against live site
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -45,9 +59,8 @@ jobs:
         run: pnpm --filter @civic-mcp/testing exec playwright install --with-deps chromium
 
       - name: Dump live form HTML
-        if: inputs.probe_url != ''
         continue-on-error: true
-        run: pnpm --filter @civic-mcp/testing exec node ../../scripts/dump-form-html.mjs "${{ inputs.probe_url }}"
+        run: pnpm --filter @civic-mcp/testing exec node ../../scripts/dump-form-html.mjs "$PROBE_URL"
 
       - name: Run live adapter tests
-        run: pnpm exec vitest run "adapters/${{ inputs.adapter }}" --config vitest.config.mts
+        run: pnpm exec vitest run "adapters/$ADAPTER" --config vitest.config.mts
