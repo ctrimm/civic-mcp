@@ -12,12 +12,12 @@
 ## Project Status
 
 **Pre-alpha.** The MCP server, SDK, CLI, and test harness build and run.
-**Six adapters are verified against their live government sites** — SSA,
-Medicare, IRS, GetCalFresh, BenefitsCal, and the StudentAid handoff — with
-19 live tests passing in CI on 2026-06-10 ([evidence](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)). The remaining
-adapters (Colorado, Michigan, Texas) still have **unverified selectors**.
-Verification runs via the
-[verify-live workflow](.github/workflows/verify-live.yml). An experimental Chrome
+**Eight of nine adapters are verified against their live government sites** —
+SSA, Medicare, IRS, GetCalFresh, BenefitsCal, Michigan Bridges, Colorado
+PEAK, and the StudentAid handoff — with 24 live tests passing in CI on
+2026-06-10 ([evidence](https://github.com/ctrimm/civic-mcp/actions/runs/27285291893)). Only the Texas adapter still has unverified
+selectors (see [FUTURE.md](FUTURE.md)). Verification runs on every push via
+the [verify-live workflow](.github/workflows/verify-live.yml). An experimental Chrome
 extension also lives in this repo — see
 [Experimental: Chrome extension](#experimental-chrome-extension--webmcp).
 
@@ -120,7 +120,7 @@ verified against the live site via the
 |---------|-------|----------|--------|
 | [`gov.california.benefitscal`](adapters/gov.california.benefitscal) | California | CalFresh, CalWORKs, Medi-Cal (official portal) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)) |
 | [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh info (site no longer hosts applications — routes to BenefitsCal) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)) |
-| [`gov.colorado.peak`](adapters/gov.colorado.peak) | Colorado | SNAP, Medicaid, Colorado Works, CHP+ | 🧪 Community (selectors unverified) |
+| [`gov.colorado.peak`](adapters/gov.colorado.peak) | Colorado | Benefits directory, finder, guest application, status (PEAK) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27285291893)) |
 | [`gov.michigan.bridges`](adapters/gov.michigan.bridges) | Michigan | Resource explorer, guest application, status (MI Bridges) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27271735544)) |
 | [`gov.texas.yourtexasbenefits`](adapters/gov.texas.yourtexasbenefits) | Texas | SNAP, TANF, Medicaid, CHIP | 🧪 Community (selectors unverified) |
 
