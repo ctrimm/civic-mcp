@@ -33,7 +33,7 @@ on:
 
 env:
   ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement' }}
-  PROBE_URL: ${{ inputs.probe_url || 'https://secure.ssa.gov/iClaim/rib' }}
+  PROBE_URL: ${{ inputs.probe_url || 'https://www.ssa.gov/OACT/population/longevity.html https://secure.ssa.gov/ICON/main.jsp' }}
 
 jobs:
   verify:

@@ -1,11 +1,11 @@
 /**
- * Dump the form HTML of a live page using a real browser (Playwright).
+ * Dump the form HTML of live pages using a real browser (Playwright).
  * Used by the verify-live GitHub Actions workflow so adapter selectors can
  * be checked against actual production markup rather than guesses.
  *
- * Usage: node scripts/dump-form-html.mjs <url>
+ * Usage: node scripts/dump-form-html.mjs <url> [url...]
  *
- * Prints, between BEGIN/END markers:
+ * Prints, between BEGIN/END markers per URL:
  *   - final URL after redirects
  *   - outerHTML of every <form> on the page (script/style contents stripped)
  *   - a flat list of all input/select/textarea/button elements
@@ -13,9 +13,9 @@
 
 import { chromium } from 'playwright';
 
-const url = process.argv[2];
-if (!url) {
-  console.error('Usage: node scripts/dump-form-html.mjs <url>');
+const urls = process.argv.slice(2).flatMap((a) => a.split(/\s+/)).filter(Boolean);
+if (urls.length === 0) {
+  console.error('Usage: node scripts/dump-form-html.mjs <url> [url...]');
   process.exit(2);
 }
 
@@ -25,10 +25,11 @@ try {
     userAgent:
       'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
   });
+  for (const url of urls) {
   const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
   await page.waitForTimeout(2_000); // allow late hydration
 
-  console.log('===== BEGIN FORM DUMP =====');
+  console.log(`===== BEGIN FORM DUMP: ${url} =====`);
   console.log(`HTTP ${response?.status()} — final URL: ${page.url()}`);
   console.log(`Title: ${await page.title()}`);
 
@@ -57,7 +58,8 @@ try {
   );
   console.log(`\n--- ${controls.length} form control(s) ---`);
   controls.forEach((c) => console.log('  ' + c));
-  console.log('===== END FORM DUMP =====');
+  console.log(`===== END FORM DUMP: ${url} =====`);
+  }
 } finally {
   await browser.close();
 }
