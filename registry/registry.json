@@ -18,10 +18,12 @@
       "trustLevel": "community",
       "verified": false,
       "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.ssa.retirement/manifest.json",
-      "updatedAt": "2026-02-18T00:00:00Z",
+      "updatedAt": "2026-06-10T00:00:00Z",
       "installs": 0,
       "rating": 0,
-      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.ssa.retirement"
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.ssa.retirement",
+      "lastVerified": "2026-06-10",
+      "verificationEvidence": "https://github.com/ctrimm/civic-mcp/actions/runs/27248526562"
     },
     {
       "id": "gov.colorado.peak",
@@ -69,7 +71,7 @@
     {
       "id": "gov.california.benefitscal",
       "name": "California BenefitsCal",
-      "description": "Tools for BenefitsCal — California's official portal for CalFresh (SNAP), CalWORKs, and Medi-Cal: eligibility pre-screening, case status, and application start",
+      "description": "Tools for BenefitsCal \u2014 California's official portal for CalFresh (SNAP), CalWORKs, and Medi-Cal: eligibility pre-screening, case status, and application start",
       "latestVersion": "0.1.0",
       "category": "state_benefits",
       "tags": [

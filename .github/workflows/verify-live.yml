@@ -20,7 +20,7 @@ on:
       probe_url:
         description: 'Page whose form HTML to dump into the log'
         required: false
-        default: 'https://www.ssa.gov/OACT/quickcalc/'
+        default: 'https://secure.ssa.gov/iClaim/rib'
   # Push trigger so verification can be driven from environments that can
   # push but lack actions:write (e.g. Claude Code sessions). Runs with the
   # default adapter/probe_url below.
@@ -28,13 +28,12 @@ on:
     branches: ['claude/**']
     paths:
       - '.github/workflows/verify-live.yml'
-      - 'scripts/dump-form-html.mjs'
       - 'adapters/gov.ssa.retirement/**'
       - 'packages/testing/**'
 
 env:
   ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement' }}
-  PROBE_URL: ${{ inputs.probe_url || 'https://www.ssa.gov/OACT/quickcalc/' }}
+  PROBE_URL: ${{ inputs.probe_url || 'https://secure.ssa.gov/iClaim/rib' }}
 
 jobs:
   verify:
@@ -60,7 +59,7 @@ jobs:
 
       - name: Dump live form HTML
         continue-on-error: true
-        run: pnpm --filter @civic-mcp/testing exec node ../../scripts/dump-form-html.mjs "$PROBE_URL"
+        run: pnpm --filter @civic-mcp/testing exec node scripts/dump-form-html.mjs "$PROBE_URL"
 
       - name: Run live adapter tests
         run: pnpm exec vitest run "adapters/$ADAPTER" --config vitest.config.mts

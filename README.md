@@ -11,10 +11,14 @@
 
 ## Project Status
 
-**Pre-alpha.** The MCP server, SDK, CLI, and test harness build and run; adapter
-selectors have **not yet been verified against live government sites**. Treat every
-adapter as a starting point that needs verification, not a finished integration.
-An experimental Chrome extension also lives in this repo — see
+**Pre-alpha.** The MCP server, SDK, CLI, and test harness build and run. One
+adapter tool is verified against its live government site: `gov.ssa.retirement`'s
+benefit estimator passed its full live test suite in CI on 2026-06-10
+([evidence](https://github.com/ctrimm/civic-mcp/actions/runs/27248526562)).
+All other adapters have **unverified selectors** — treat them as starting points,
+not finished integrations. Verification runs via the
+[verify-live workflow](.github/workflows/verify-live.yml). An experimental Chrome
+extension also lives in this repo — see
 [Experimental: Chrome extension](#experimental-chrome-extension--webmcp).
 
 ## The Problem
@@ -106,8 +110,9 @@ Full details: [docs/identity.md](docs/identity.md).
 
 ## Available Adapters
 
-All adapters are currently **community-tier with unverified selectors** — see
-[Project Status](#project-status).
+All adapters are community-tier. Statuses below say whether selectors have been
+verified against the live site via the
+[verify-live workflow](.github/workflows/verify-live.yml).
 
 ### State Benefits
 
@@ -123,7 +128,7 @@ All adapters are currently **community-tier with unverified selectors** — see
 
 | Adapter | Agency | Services | Status |
 |---------|--------|----------|--------|
-| [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Retirement benefit estimates, application start | 🧪 Community (selectors unverified) |
+| [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Retirement benefit estimates, application start | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27248526562)) |
 
 **[Request an adapter →](https://github.com/ctrimm/civic-mcp/issues)**
 
@@ -297,7 +302,7 @@ AGPL closes that door. Individual users and government agencies running the tool
 | Milestone | Status |
 |-----------|--------|
 | Standalone MCP server (annotations, write gating, identities) | ✅ Built — needs live-site verification |
-| First adapter verified end-to-end against a live site | 🔄 Next up |
+| First adapter verified end-to-end against a live site | ✅ gov.ssa.retirement, 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27248526562)) |
 | SDK, CLI, test harness | ✅ Built |
 | Live selector verification for all 6 adapters | 🚧 Planned |
 | Adapter verification process + verified tier | 🚧 Planned |

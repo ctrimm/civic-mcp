@@ -1,44 +1,29 @@
 {
-  "_comment": "CSS selectors for SSA.gov retirement pages. Verified 2026-02-19 against live HTML. SSA uses Angular on secure.ssa.gov and plain HTML on the Quick Calculator.",
-
+  "_comment": "CSS selectors for SSA.gov retirement pages. quick_calculator selectors VERIFIED 2026-06-10 against the live site via CI (actions run 27248526562). The plain-HTML Quick Calculator has been stable for years.",
   "quick_calculator": {
-    "_comment_dob": "Three separate text inputs — month (dobmon), day (dobday), year (yob)",
-    "dobMonth":      "input#month,       input[name='dobmon']",
-    "dobDay":        "input#day,         input[name='dobday']",
-    "dobYear":       "input#year,        input[name='yob']",
-
+    "_comment_dob": "Three separate text inputs \u2014 month (dobmon), day (dobday), year (yob)",
+    "dobMonth": "input#month,       input[name='dobmon']",
+    "dobDay": "input#day,         input[name='dobday']",
+    "dobYear": "input#year,        input[name='yob']",
     "_comment_earnings": "Current-year earnings; if 0, form reveals lastYearEarn + lastEarn",
-    "earningsNow":   "input#earnings,    input[name='earnings']",
-    "lastYearEarn":  "input#lastyear,    input[name='lastYearEarn']",
-    "lastEarnings":  "input#lastearnings,input[name='lastEarn']",
-
-    "_comment_retire": "Optional planned retirement — both month and year required",
-    "retireMonth":   "input#retiremonth, input[name='retiremonth']",
-    "retireYear":    "input#retireyear,  input[name='retireyear']",
-
-    "_comment_dollars": "Radio: value=1 → today's dollars (default/checked); value=0 → inflated (future) dollars",
-    "dollarTypeToday":  "input#constant, input[name='dollars'][value='1']",
+    "earningsNow": "input#earnings,    input[name='earnings']",
+    "lastYearEarn": "input#lastyear,    input[name='lastYearEarn']",
+    "lastEarnings": "input#lastearnings,input[name='lastEarn']",
+    "_comment_retire": "Optional planned retirement \u2014 both month and year required",
+    "retireMonth": "input#retiremonth, input[name='retiremonth']",
+    "retireYear": "input#retireyear,  input[name='retireyear']",
+    "_comment_dollars": "Radio: value=1 \u2192 today's dollars (default/checked); value=0 \u2192 inflated (future) dollars",
+    "dollarTypeToday": "input#constant, input[name='dollars'][value='1']",
     "dollarTypeFuture": "input#nominal,  input[name='dollars'][value='0']",
-
-    "submitBtn":     "input[type='submit'][value='Submit request']",
-
-    "_comment_results": "Results page — selector IDs are unverified against live HTML",
+    "submitBtn": "input[type='submit'][value='Submit request']",
+    "_comment_results": "Results page \u2014 verified working 2026-06-10 via live CI run",
     "resultPageReady": "table[summary='formatting']",
-    "resultTable":     "table[summary='benefits']",
-    "benefitAge62":    "td#est_early",
-    "benefitFRA":      "td#est_fra",
-    "benefitAge70":    "td#est_late"
+    "resultTable": "table[summary='benefits']",
+    "benefitAge62": "td#est_early",
+    "benefitFRA": "td#est_fra",
+    "benefitAge70": "td#est_late"
   },
-
   "retirement_application": {
-    "dobField":       "input#birthDate,  input[name='birthDate'],  input[id*='DateOfBirth']",
-    "firstNameField": "input#firstName,  input[name='firstName'],  input[id*='FirstName']",
-    "lastNameField":  "input#lastName,   input[name='lastName'],   input[id*='LastName']",
-    "phoneField":     "input#phone,      input[name='phone'],      input[type='tel']",
-    "continueBtn":    "button#continueBtn, input[type='submit']#next, button[type='submit']",
-    "recaptchaFrame": "iframe[title*='reCAPTCHA'], iframe[src*='recaptcha'], iframe[src*='google.com/recaptcha']",
-    "recaptchaAnchor":".recaptcha-checkbox-border, #recaptcha-anchor",
-    "submitBtn":      "input[type='submit']#submitBtn, button#iAgreeBtn, button[type='submit'].submit",
-    "confirmationEl": "#iClaim-confirm, .confirmation-number, [id*='confirmation'], h2.success"
+    "_comment": "Intentionally empty. The previous selectors here were fabricated \u2014 the live run on 2026-06-10 proved they do not exist on secure.ssa.gov/iClaim/rib. The application tool is now a pure human handoff (Login.gov / ID.me) and needs no selectors."
   }
 }
