@@ -3,7 +3,7 @@
   "name": "Michigan MI Bridges",
   "version": "0.1.0",
   "author": "Community Contributor",
-  "description": "WebMCP tools for Michigan SNAP, Medicaid, and Cash Assistance applications via MI Bridges",
+  "description": "Tools for MI Bridges \u2014 Michigan's portal for SNAP (FAP), Medicaid, and cash assistance: resource explorer, guest application handoff, and status check",
   "homepage": "https://newmibridges.michigan.gov",
   "repository": "https://github.com/civic-mcp/civic-mcp",
   "license": "MIT",
@@ -13,9 +13,9 @@
   ],
   "tools": [
     {
-      "name": "check_eligibility",
+      "name": "explore_resources",
       "securityLevel": "read_only",
-      "category": "eligibility"
+      "category": "info"
     },
     {
       "name": "start_application",
@@ -29,12 +29,24 @@
     }
   ],
   "permissions": {
-    "required": ["read:forms", "write:forms", "navigate"],
-    "optional": ["storage:local", "notifications"]
+    "required": [
+      "read:forms",
+      "write:forms",
+      "navigate"
+    ],
+    "optional": [
+      "storage:local",
+      "notifications"
+    ]
   },
   "trustLevel": "community",
   "verified": false,
   "category": "state_benefits",
-  "tags": ["SNAP", "Medicaid", "Cash Assistance", "Michigan"],
+  "tags": [
+    "SNAP",
+    "Medicaid",
+    "Cash Assistance",
+    "Michigan"
+  ],
   "state": "MI"
 }

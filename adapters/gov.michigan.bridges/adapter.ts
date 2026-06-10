@@ -1,148 +1,64 @@
 /**
  * Michigan MI Bridges Adapter
  *
- * Target site: https://newmibridges.michigan.gov
- * Programs: SNAP (FAP), Medicaid, Cash Assistance (FIP), State Disability Assistance
+ * Target site: https://newmibridges.michigan.gov (Salesforce Experience Cloud)
  *
- * Selectors are best-effort and UNVERIFIED against the live site.
- * Verify and update before relying on this adapter.
- * MI Bridges uses an Angular-based SPA — wait for Angular rendering
- * after navigation.
- *
- * Tools without login: check_eligibility
- * Tools requiring login: start_application, check_application_status
+ * Entry points verified against the live site on 2026-06-10 (CI runs
+ * 27271075100, 27271379213):
+ *   landing page  /s/isd-landing-page (root redirects here)
+ *   buttons       button[name='guest-afb-btn']    → /s/isd-external-afb-screen
+ *                 button[name='find-resource-btn'] → /s/isd-explore-resources
+ *                 button[name='login-btn']
+ * The deeper application/status flows previously hardcoded here
+ * (/s/isd-check-benefits, /s/isd-apply-benefits, /s/isd-my-applications)
+ * were never verified and have been replaced with these click-through flows.
  */
 
 import type { AdapterModule, SandboxContext, ToolResult } from '@civic-mcp/sdk';
 
+const LANDING_URL = 'https://newmibridges.michigan.gov/';
+
+async function openLanding(context: SandboxContext): Promise<void> {
+  await context.page.navigate(LANDING_URL, { timeout: 45_000 });
+  await context.utils.sleep(5_000); // Salesforce LWC boot
+}
+
 const adapter: AdapterModule = {
   id: 'gov.michigan.bridges',
 
-  async init(context: SandboxContext): Promise<void> {
-    const onSite = context.page.currentUrl().includes('michigan.gov');
-    if (onSite) {
-      context.notify.info('Michigan MI Bridges adapter ready.');
-    }
-  },
-
   tools: [
-    // ── check_eligibility ──────────────────────────────────────────────────
+    // ── explore_resources ────────────────────────────────────────────────
     {
-      name: 'check_eligibility',
+      name: 'explore_resources',
       description:
-        'Run the MI Bridges pre-screener to estimate eligibility for SNAP, Medicaid, and Cash Assistance. No login required.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          householdSize: {
-            type: 'number',
-            description: 'Number of people in household',
-            minimum: 1,
-            maximum: 20,
-          },
-          monthlyGrossIncome: {
-            type: 'number',
-            description: 'Total monthly gross income in dollars',
-            minimum: 0,
-          },
-          hasChildren: {
-            type: 'boolean',
-            description: 'Are there children under 18 in the household?',
-          },
-          hasDisability: {
-            type: 'boolean',
-            description: 'Does anyone in the household have a disability?',
-          },
-          county: {
-            type: 'string',
-            description: 'Michigan county name (e.g. Wayne, Oakland, Kent)',
-          },
-        },
-        required: ['householdSize', 'monthlyGrossIncome'],
-      },
+        'Open MI Bridges "Explore Resources" — Michigan\'s directory of state and ' +
+        'community assistance programs (food, housing, utilities, health) — and report ' +
+        'what it offers. No login required.',
+      inputSchema: { type: 'object', properties: {} },
 
-      async execute(
-        params: {
-          householdSize: number;
-          monthlyGrossIncome: number;
-          hasChildren?: boolean;
-          hasDisability?: boolean;
-          county?: string;
-        },
-        context: SandboxContext,
-      ): Promise<ToolResult> {
+      async execute(_params: Record<string, never>, context: SandboxContext): Promise<ToolResult> {
+        const { page, utils } = context;
         try {
-          const { page, notify } = context;
+          await openLanding(context);
+          await page.click("button[name='find-resource-btn']", { timeout: 15_000 });
+          await utils.sleep(4_000); // route render
 
-          await page.navigate('https://newmibridges.michigan.gov/s/isd-check-benefits', {
-            waitForSelector:
-              'form, [class*="screener"], [data-testid="screener-form"], .slds-form',
-            timeout: 15_000,
-          });
+          const text = (await page.getText('main')) ?? (await page.getText('body')) ?? '';
+          const url = page.currentUrl();
 
-          notify.info('Running MI Bridges eligibility check…');
-
-          // Wait for Angular rendering
-          await context.utils.sleep(500);
-
-          // Household size
-          await page.fillField(
-            'input[name="householdSize"], input[id*="household"], input[placeholder*="household"]',
-            String(params.householdSize),
-          );
-
-          // Income
-          await page.fillField(
-            'input[name="monthlyIncome"], input[id*="income"], input[placeholder*="income"]',
-            String(params.monthlyGrossIncome),
-          );
-
-          // County
-          if (params.county) {
-            const countySelect = await page.exists('select[name="county"], select[id*="county"]');
-            if (countySelect) {
-              await page.selectOption('select[name="county"], select[id*="county"]', params.county, {
-                byText: true,
-              });
-            }
+          if (!url.includes('isd-explore-resources')) {
+            return {
+              success: false,
+              error: `Expected the explore-resources page, landed on ${url}`,
+              code: 'SITE_CHANGED',
+            };
           }
-
-          // Optional flags
-          if (params.hasChildren) {
-            const cb = await page.exists('input[name="hasChildren"], input[value="children"]');
-            if (cb) await page.click('input[name="hasChildren"], input[value="children"]');
-          }
-          if (params.hasDisability) {
-            const cb = await page.exists('input[name="hasDisability"], input[value="disability"]');
-            if (cb) await page.click('input[name="hasDisability"], input[value="disability"]');
-          }
-
-          await page.click('button[type="submit"], [data-testid="submit"], .submit-btn', {
-            waitForNavigation: false,
-          });
-          await page.waitForSelector('.results, [data-testid="results"], [class*="results"]', {
-            timeout: 10_000,
-          });
-
-          const snapResult = await page.getText(
-            '[data-program="FAP"] .result, [data-program="SNAP"] .result, .snap-result',
-          );
-          const medicaidResult = await page.getText(
-            '[data-program="Medicaid"] .result, [data-program="MA"] .result',
-          );
-          const cashResult = await page.getText(
-            '[data-program="FIP"] .result, [data-program="Cash"] .result',
-          );
-          const overallMessage = await page.getText('.overall-result, .results-summary, [data-testid="summary"]');
 
           return {
             success: true,
             data: {
-              snapResult: snapResult ?? 'See MI Bridges for SNAP result',
-              medicaidResult: medicaidResult ?? 'See MI Bridges for Medicaid result',
-              cashAssistanceResult: cashResult ?? 'See MI Bridges for Cash Assistance result',
-              overallMessage,
-              note: 'This is a pre-screener estimate. Actual eligibility is determined by a caseworker.',
+              siteReportedContent: text.replace(/\s+/g, ' ').trim().slice(0, 2_500),
+              currentUrl: url,
             },
           };
         } catch (err) {
@@ -155,76 +71,41 @@ const adapter: AdapterModule = {
       },
     },
 
-    // ── start_application ──────────────────────────────────────────────────
+    // ── start_application ────────────────────────────────────────────────
     {
       name: 'start_application',
       description:
-        'Begin a Michigan benefits application on MI Bridges. Requires login or account creation.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          firstName: { type: 'string' },
-          lastName: { type: 'string' },
-          dateOfBirth: { type: 'string', description: 'MM/DD/YYYY' },
-          programs: {
-            type: 'array',
-            items: { type: 'string', enum: ['SNAP', 'Medicaid', 'Cash', 'SDA'] },
-            description: 'Programs to apply for',
-          },
-        },
-        required: ['firstName', 'lastName', 'dateOfBirth'],
-      },
+        'Open the MI Bridges guest application for Michigan benefits (SNAP/FAP, ' +
+        'Medicaid, cash assistance) and hand the browser to the user. Nothing is ' +
+        'filled or submitted by the agent.',
+      inputSchema: { type: 'object', properties: {} },
 
-      async execute(
-        params: { firstName: string; lastName: string; dateOfBirth: string; programs?: string[] },
-        context: SandboxContext,
-      ): Promise<ToolResult> {
+      async execute(_params: Record<string, never>, context: SandboxContext): Promise<ToolResult> {
+        const { page, utils } = context;
         try {
-          const { page, notify } = context;
+          await openLanding(context);
+          // Verified: routes to /s/isd-external-afb-screen
+          await page.click("button[name='guest-afb-btn']", { timeout: 15_000 });
+          await utils.sleep(4_000);
 
-          await page.navigate('https://newmibridges.michigan.gov/s/isd-apply-benefits', {
-            waitForSelector: 'form, .application-start, [data-testid="apply-form"]',
-            timeout: 15_000,
+          await page.waitForHuman({
+            prompt:
+              'The MI Bridges application screening is open in the browser.\n\n' +
+              '1. Answer the screening questions and continue into the application.\n' +
+              '2. Complete the steps yourself (you may be asked to register).\n' +
+              '3. Click "Done — continue" here when finished or to stop.',
+            timeout: 30 * 60 * 1_000,
           });
-
-          const loginRequired = await page.exists('[class*="login"], [id*="login"], .login-form');
-          if (loginRequired) {
-            return {
-              success: false,
-              error: 'Login required to start an application. Please create or log in to your MI Bridges account.',
-              code: 'AUTH_REQUIRED',
-            };
-          }
-
-          notify.info('Starting MI Bridges application…');
-          await context.utils.sleep(500);
-
-          await page.fillField('input[name="firstName"], input[id*="firstName"]', params.firstName);
-          await page.fillField('input[name="lastName"], input[id*="lastName"]', params.lastName);
-          await page.fillField('input[name="dateOfBirth"], input[id*="dob"]', params.dateOfBirth);
-
-          const programs = params.programs ?? ['SNAP'];
-          for (const p of programs) {
-            const cb = await page.exists(`input[value="${p}"], input[name="${p}"]`);
-            if (cb) await page.click(`input[value="${p}"], input[name="${p}"]`);
-          }
-
-          await page.click('button[type="submit"]', { waitForNavigation: false });
-          await page.waitForSelector('.confirmation, [data-testid="confirmation"]', {
-            timeout: 15_000,
-          });
-
-          const applicationId = await page.getText('.application-number, [data-testid="app-id"]');
 
           return {
             success: true,
             data: {
-              applicationId: applicationId ?? 'Check MI Bridges portal for your application number',
-              programs,
-              nextStep: 'Continue your application at https://newmibridges.michigan.gov',
+              currentUrl: page.currentUrl(),
+              note: 'Browser was handed to the user. Nothing was filled or submitted by the agent.',
             },
           };
         } catch (err) {
+          if (err instanceof Error && err.name === 'HumanRequiredError') throw err;
           return {
             success: false,
             error: err instanceof Error ? err.message : String(err),
@@ -234,53 +115,40 @@ const adapter: AdapterModule = {
       },
     },
 
-    // ── check_application_status ───────────────────────────────────────────
+    // ── check_application_status ─────────────────────────────────────────
     {
       name: 'check_application_status',
-      description: 'Check the status of a Michigan benefits application. Requires login.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          applicationId: { type: 'string', description: 'Optional application number' },
-        },
-        required: [],
-      },
+      description:
+        'Check the status of MI Bridges applications and benefits. Requires an ' +
+        'MI Bridges account: the browser pauses for login; the session is then ' +
+        'remembered in the active identity.',
+      inputSchema: { type: 'object', properties: {} },
 
-      async execute(
-        params: { applicationId?: string },
-        context: SandboxContext,
-      ): Promise<ToolResult> {
+      async execute(_params: Record<string, never>, context: SandboxContext): Promise<ToolResult> {
+        const { page, utils } = context;
         try {
-          const { page } = context;
+          await openLanding(context);
+          await page.click("button[name='login-btn']", { timeout: 15_000 });
+          await utils.sleep(3_000);
 
-          await page.navigate('https://newmibridges.michigan.gov/s/isd-my-applications', {
-            waitForSelector: '.applications, [data-testid="apps-list"]',
-            timeout: 15_000,
+          await page.waitForHuman({
+            prompt:
+              'MI Bridges needs you to log in. Sign in (including any verification ' +
+              'code), navigate to your dashboard/benefits page, then continue. ' +
+              'Your session will be remembered.',
+            timeout: 10 * 60 * 1_000,
           });
 
-          const loginRequired = await page.exists('[class*="login"], .login-form');
-          if (loginRequired) {
-            return {
-              success: false,
-              error: 'Login required. Please log in to MI Bridges.',
-              code: 'AUTH_REQUIRED',
-            };
-          }
-
-          await context.utils.sleep(500);
-
-          const status = await page.getText('.status, [data-testid="app-status"]');
-          const lastUpdated = await page.getText('.last-updated, [data-testid="updated"]');
-
+          const text = (await page.getText('main')) ?? (await page.getText('body')) ?? '';
           return {
             success: true,
             data: {
-              status: status ?? 'See MI Bridges portal for status',
-              lastUpdated,
-              applicationId: params.applicationId,
+              siteReportedContent: text.replace(/\s+/g, ' ').trim().slice(0, 2_500),
+              currentUrl: page.currentUrl(),
             },
           };
         } catch (err) {
+          if (err instanceof Error && err.name === 'HumanRequiredError') throw err;
           return {
             success: false,
             error: err instanceof Error ? err.message : String(err),
