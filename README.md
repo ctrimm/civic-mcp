@@ -12,9 +12,10 @@
 ## Project Status
 
 **Pre-alpha.** The MCP server, SDK, CLI, and test harness build and run. One
-adapter tool is verified against its live government site: `gov.ssa.retirement`'s
-benefit estimator passed its full live test suite in CI on 2026-06-10
-([evidence](https://github.com/ctrimm/civic-mcp/actions/runs/27248526562)).
+adapter is verified against its live government site: `gov.ssa.retirement`
+passed all 12 live tests (benefit estimator, life expectancy calculator,
+office locator, application handoff) in CI on 2026-06-10
+([evidence](https://github.com/ctrimm/civic-mcp/actions/runs/27268888303)).
 All other adapters have **unverified selectors** — treat them as starting points,
 not finished integrations. Verification runs via the
 [verify-live workflow](.github/workflows/verify-live.yml). An experimental Chrome
@@ -128,7 +129,7 @@ verified against the live site via the
 
 | Adapter | Agency | Services | Status |
 |---------|--------|----------|--------|
-| [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Retirement benefit estimates, application start | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27248526562)) |
+| [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Benefit estimates, life expectancy, office locator, application handoff | ✅ Live-verified 2026-06-10, 12/12 tests ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27268888303)) |
 
 **[Request an adapter →](https://github.com/ctrimm/civic-mcp/issues)**
 

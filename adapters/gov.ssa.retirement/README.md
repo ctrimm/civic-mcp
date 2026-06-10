@@ -3,7 +3,7 @@
 **Adapter ID:** `gov.ssa.retirement`
 **Sites:** `www.ssa.gov` · `secure.ssa.gov`
 **Trust level:** Community
-**Last verified:** 2026-06-10 — `estimate_retirement_benefit` passed all 8 live tests against the real SSA Quick Calculator in CI ([run 27248526562](https://github.com/ctrimm/civic-mcp/actions/runs/27248526562))
+**Last verified:** 2026-06-10 — all 12 live tests passed against production ssa.gov in CI ([run 27268888303](https://github.com/ctrimm/civic-mcp/actions/runs/27268888303)): benefit estimator, life expectancy calculator, office locator, and the application handoff
 
 ---
 
@@ -36,6 +36,31 @@ retirement benefit at three claiming ages.
   "source": "SSA Quick Calculator — https://www.ssa.gov/OACT/quickcalc/"
 }
 ```
+
+---
+
+### `estimate_life_expectancy`
+
+Drives the [SSA Life Expectancy Calculator](https://www.ssa.gov/OACT/population/longevity.html)
+(sex + date of birth → average additional life expectancy from SSA actuarial
+tables). Useful when weighing claiming ages. Selectors were captured from the
+live form HTML by the verify-live probe — note the month values are 0-based
+and the day list is JS-populated.
+
+| Input | Type | Required |
+|---|---|---|
+| `sex` | `"male"` / `"female"` | Yes |
+| `birthMonth` | number (1–12) | Yes |
+| `birthDay` | number (1–31) | Yes |
+| `birthYear` | number (1908–2026) | Yes |
+
+---
+
+### `find_local_office`
+
+Searches the [SSA Field Office Locator](https://www.ssa.gov/locator) by ZIP,
+city, or address and returns the site-reported office details. (The old
+`secure.ssa.gov/ICON` locator now redirects here.)
 
 ---
 
