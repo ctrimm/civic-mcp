@@ -33,7 +33,7 @@ on:
 
 env:
   ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement' }}
-  PROBE_URL: ${{ inputs.probe_url || 'https://www.getcalfresh.org/en/prescreen https://benefitscal.com/help-me-find/am-i-eligible https://benefitscal.com/ https://www.medicare.gov/eligibilitypremiumcalc https://studentaid.gov/aid-estimator https://apps.irs.gov/app/tax-withholding-estimator' }}
+  PROBE_URL: ${{ inputs.probe_url || 'https://www.getcalfresh.org/en/ https://www.getcalfresh.org/en/apply https://benefitscal.com/::click=#HomePage_doIQualify_btn https://www.medicare.gov/eligibilitypremiumcalc::click=#btnEligibility https://www.medicare.gov/eligibilitypremiumcalc::click=#btnPremium https://studentaid.gov/aid-estimator https://apps.irs.gov/app/tax-withholding-estimator' }}
 
 jobs:
   verify:

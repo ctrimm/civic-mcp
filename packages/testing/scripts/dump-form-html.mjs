@@ -4,11 +4,14 @@
  * be checked against actual production markup rather than guesses.
  *
  * Usage: node scripts/dump-form-html.mjs <url> [url...]
+ *   Append "::click=SELECTOR" to a URL to click an element after load and
+ *   dump the resulting state (for calculators hidden behind entry buttons).
  *
  * Prints, between BEGIN/END markers per URL:
  *   - final URL after redirects
  *   - outerHTML of every <form> on the page (script/style contents stripped)
  *   - a flat list of all input/select/textarea/button elements
+ *   - anchors whose text/href look like screener/application entry points
  */
 
 import { chromium } from 'playwright';
@@ -19,20 +22,29 @@ if (urls.length === 0) {
   process.exit(2);
 }
 
-const browser = await chromium.launch({ headless: true });
+// --disable-http2: some government CDNs (Akamai) reject Playwright's HTTP/2
+// fingerprint from datacenter IPs while accepting HTTP/1.1
+const browser = await chromium.launch({ headless: true, args: ['--disable-http2'] });
 try {
   const page = await browser.newPage({
     userAgent:
       'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
   });
-  for (const url of urls) {
+  for (const spec of urls) {
+  const [url, clickDirective] = spec.split('::click=');
   try {
   const response = await page.goto(url, { waitUntil: 'load', timeout: 60_000 });
   await page.waitForTimeout(3_500); // allow SPA hydration
 
-  console.log(`===== BEGIN FORM DUMP: ${url} =====`);
+  console.log(`===== BEGIN FORM DUMP: ${spec} =====`);
   console.log(`HTTP ${response?.status()} — final URL: ${page.url()}`);
   console.log(`Title: ${await page.title()}`);
+
+  if (clickDirective) {
+    await page.click(clickDirective, { timeout: 15_000 });
+    await page.waitForTimeout(3_500);
+    console.log(`After click ${clickDirective} — URL now: ${page.url()}`);
+  }
 
   const forms = await page.$$eval('form', (els) =>
     els.map((f) => f.outerHTML.replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')),
@@ -59,9 +71,18 @@ try {
   );
   console.log(`\n--- ${controls.length} form control(s) ---`);
   controls.forEach((c) => console.log('  ' + c));
-  console.log(`===== END FORM DUMP: ${url} =====`);
+
+  const links = await page.$$eval('a[href]', (els) =>
+    els
+      .map((a) => ({ href: a.getAttribute('href') ?? '', text: (a.textContent ?? '').trim().slice(0, 60) }))
+      .filter((l) => /elig|screen|apply|estimat|qualify|prescreen|calculat/i.test(l.href + ' ' + l.text))
+      .slice(0, 30),
+  );
+  console.log(`\n--- ${links.length} relevant link(s) ---`);
+  links.forEach((l) => console.log(`  ${l.href}  «${l.text}»`));
+  console.log(`===== END FORM DUMP: ${spec} =====`);
   } catch (err) {
-    console.log(`===== PROBE FAILED: ${url} — ${err instanceof Error ? err.message : err} =====`);
+    console.log(`===== PROBE FAILED: ${spec} — ${err instanceof Error ? err.message : err} =====`);
   }
   }
 } finally {
