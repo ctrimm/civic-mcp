@@ -25,5 +25,19 @@
   },
   "retirement_application": {
     "_comment": "Intentionally empty. The previous selectors here were fabricated \u2014 the live run on 2026-06-10 proved they do not exist on secure.ssa.gov/iClaim/rib. The application tool is now a pure human handoff (Login.gov / ID.me) and needs no selectors."
+  },
+  "life_expectancy": {
+    "_comment": "VERIFIED 2026-06-10 from live form HTML (CI run 27268573761). Plain POST form; month values are 0-based; day list is JS-populated after month selection.",
+    "form": "form[name='LEForm']",
+    "sex": "select#sex",
+    "birthMonth": "select#monthofbirth",
+    "birthDay": "select#dayofbirth",
+    "birthYear": "select#yearofbirth",
+    "submit": "form[name='LEForm'] input[type='submit']"
+  },
+  "office_locator": {
+    "_comment": "Entry-page selectors probed 2026-06-10 (CI run 27268573761): secure.ssa.gov/ICON redirects to www.ssa.gov/locator. Results-page selectors are best-effort.",
+    "searchInput": "#office-locator-desktop",
+    "submit": "uef-textbox button[type='submit']"
   }
 }

@@ -252,3 +252,58 @@ describe('gov.ssa.retirement — start_retirement_application', () => {
     },
   );
 });
+
+// ---------------------------------------------------------------------------
+// estimate_life_expectancy — fully autonomous, no human needed
+// ---------------------------------------------------------------------------
+
+describe('gov.ssa.retirement — estimate_life_expectancy', () => {
+  it('returns SSA-reported life expectancy for a male born in 1960', { timeout: 45_000 }, async () => {
+    const result = await harness.testTool('estimate_life_expectancy', {
+      sex: 'male',
+      birthMonth: 3,
+      birthDay: 15,
+      birthYear: 1960,
+    });
+
+    expect(result).toBeToolSuccess();
+    if (result.success) {
+      expect(result.data['resultUrl']).toContain('longevity');
+      const text = String(result.data['siteReportedResults']).toLowerCase();
+      expect(text).toContain('life expectancy');
+    }
+  });
+
+  it('returns SSA-reported life expectancy for a female born in 1985', { timeout: 45_000 }, async () => {
+    const result = await harness.testTool('estimate_life_expectancy', {
+      sex: 'female',
+      birthMonth: 11,
+      birthDay: 2,
+      birthYear: 1985,
+    });
+
+    expect(result).toBeToolSuccess();
+    if (result.success) {
+      expect(String(result.data['siteReportedResults']).length).toBeGreaterThan(50);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// find_local_office — fully autonomous, no human needed
+// ---------------------------------------------------------------------------
+
+describe('gov.ssa.retirement — find_local_office', () => {
+  it('finds an office for a Baltimore ZIP code', { timeout: 60_000 }, async () => {
+    const result = await harness.testTool('find_local_office', {
+      location: '21201',
+    });
+
+    expect(result).toBeToolSuccess();
+    if (result.success) {
+      const text = String(result.data['siteReportedResults']).toLowerCase();
+      expect(text.length).toBeGreaterThan(50);
+      expect(text).toContain('office');
+    }
+  });
+});

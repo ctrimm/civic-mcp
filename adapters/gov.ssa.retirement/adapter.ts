@@ -334,6 +334,155 @@ const adapter: AdapterModule = {
         }
       },
     },
+
+    // ── estimate_life_expectancy ─────────────────────────────────────────────
+    //
+    // SSA Life Expectancy Calculator — plain POST form, no login, no CAPTCHA.
+    // Form markup captured from the live page on 2026-06-10 (CI run 27268573761):
+    //   form[name=LEForm] action=/cgi-bin/longevity.cgi
+    //   select#sex (values: m, f) · select#monthofbirth (values 0–11)
+    //   select#dayofbirth (populated by JS after month is chosen)
+    //   select#yearofbirth (values 1908–2026)
+    {
+      name: 'estimate_life_expectancy',
+      description:
+        'Estimate average additional life expectancy using the SSA Life Expectancy ' +
+        'Calculator, based on sex and date of birth. Useful for retirement claiming-age ' +
+        'decisions. No login required. Returns what the SSA calculator reports.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          sex: {
+            type: 'string',
+            description: 'Sex as used by SSA actuarial tables',
+            enum: ['male', 'female'],
+          },
+          birthMonth: { type: 'number', description: 'Birth month (1–12)', minimum: 1, maximum: 12 },
+          birthDay:   { type: 'number', description: 'Birth day (1–31)', minimum: 1, maximum: 31 },
+          birthYear:  { type: 'number', description: 'Four-digit birth year', minimum: 1908, maximum: 2026 },
+        },
+        required: ['sex', 'birthMonth', 'birthDay', 'birthYear'],
+      },
+
+      async execute(
+        params: { sex: 'male' | 'female'; birthMonth: number; birthDay: number; birthYear: number },
+        context: SandboxContext,
+      ): Promise<ToolResult> {
+        const { page, utils, notify } = context;
+        try {
+          notify.info('Loading SSA Life Expectancy Calculator…');
+          await page.navigate('https://www.ssa.gov/OACT/population/longevity.html', {
+            waitForSelector: 'form[name="LEForm"]',
+            timeout: 20_000,
+          });
+
+          await page.selectOption('select#sex', params.sex === 'male' ? 'm' : 'f');
+          // Month values are 0-based on the live form (January = "0")
+          await page.selectOption('select#monthofbirth', String(params.birthMonth - 1));
+          // Selecting a month triggers MonthChange(), which populates the day list
+          await utils.sleep(400);
+          try {
+            await page.selectOption('select#dayofbirth', String(params.birthDay));
+          } catch {
+            // Some browsers render the JS-populated options with label-only values
+            await page.selectOption('select#dayofbirth', String(params.birthDay), { byText: true });
+          }
+          await page.selectOption('select#yearofbirth', String(params.birthYear));
+
+          await page.click('form[name="LEForm"] input[type="submit"]', {
+            waitForNavigation: true,
+            timeout: 20_000,
+          });
+
+          const resultUrl = page.currentUrl();
+          const resultText =
+            (await page.getText('main')) ?? (await page.getText('body')) ?? '';
+
+          if (!resultUrl.includes('longevity')) {
+            return {
+              success: false,
+              error: `Expected the longevity.cgi results page, landed on ${resultUrl}`,
+              code: 'SITE_CHANGED',
+            };
+          }
+
+          // Report what the SITE says — no local actuarial math
+          return {
+            success: true,
+            data: {
+              siteReportedResults: resultText.replace(/\s+/g, ' ').trim().slice(0, 2_500),
+              resultUrl,
+              source: 'SSA Life Expectancy Calculator — https://www.ssa.gov/OACT/population/longevity.html',
+              note: 'Population averages from SSA actuarial tables — not a prediction for any individual.',
+            },
+          };
+        } catch (err) {
+          return {
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+            code: 'UNKNOWN',
+          };
+        }
+      },
+    },
+
+    // ── find_local_office ────────────────────────────────────────────────────
+    //
+    // SSA Field Office Locator. secure.ssa.gov/ICON redirects to
+    // www.ssa.gov/locator (probe 2026-06-10): search box is
+    // input#office-locator-desktop with a submit button inside <uef-button>.
+    // Results-page selectors are best-effort.
+    {
+      name: 'find_local_office',
+      description:
+        'Find the nearest Social Security field office by ZIP code, city, or address ' +
+        'using the official SSA office locator. No login required.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          location: {
+            type: 'string',
+            description: 'ZIP code, city + state, or street address (e.g. "21201" or "Baltimore, MD")',
+          },
+        },
+        required: ['location'],
+      },
+
+      async execute(params: { location: string }, context: SandboxContext): Promise<ToolResult> {
+        const { page, utils, notify } = context;
+        try {
+          notify.info('Searching the SSA office locator…');
+          await page.navigate('https://www.ssa.gov/locator', {
+            waitForSelector: '#office-locator-desktop',
+            timeout: 25_000,
+          });
+
+          await page.fillField('#office-locator-desktop', params.location);
+          await page.click('uef-textbox button[type="submit"]', { timeout: 15_000 });
+          // Results render client-side after the search
+          await utils.sleep(2_500);
+          await page.waitForSelector('main', { timeout: 20_000 });
+
+          const resultText =
+            (await page.getText('main')) ?? (await page.getText('body')) ?? '';
+
+          return {
+            success: true,
+            data: {
+              siteReportedResults: resultText.replace(/\s+/g, ' ').trim().slice(0, 2_500),
+              resultUrl: page.currentUrl(),
+              source: 'SSA Field Office Locator — https://www.ssa.gov/locator',
+            },
+          };
+        } catch (err) {
+          return {
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+            code: 'UNKNOWN',
+          };
+        }
+      },
+    },
   ],
 };
 

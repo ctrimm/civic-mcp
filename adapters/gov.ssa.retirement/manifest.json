@@ -22,11 +22,29 @@
       "name": "start_retirement_application",
       "securityLevel": "write",
       "category": "application"
+    },
+    {
+      "name": "estimate_life_expectancy",
+      "securityLevel": "read_only",
+      "category": "info"
+    },
+    {
+      "name": "find_local_office",
+      "securityLevel": "read_only",
+      "category": "info"
     }
   ],
   "permissions": {
-    "required": ["read:forms", "write:forms", "navigate", "human-in-the-loop"],
-    "optional": ["storage:local", "notifications"]
+    "required": [
+      "read:forms",
+      "write:forms",
+      "navigate",
+      "human-in-the-loop"
+    ],
+    "optional": [
+      "storage:local",
+      "notifications"
+    ]
   },
   "trustLevel": "community",
   "verified": false,
