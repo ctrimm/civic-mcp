@@ -1,0 +1,12 @@
+{
+  "_note": "Page-1 selectors VERIFIED 2026-06-10 from live app HTML (CI run 27269590345). Fact-graph ids contain slashes — use attribute selectors. Income-step and later pages are not yet mapped.",
+  "aboutYou": {
+    "url": "https://apps.irs.gov/app/tax-withholding-estimator",
+    "filingStatus": "[id='/filingStatus-<single|marriedFilingJointly|marriedFilingSeparately|headOfHousehold|qualifiedSurvivingSpouse>']",
+    "age65": "[id='/primaryFilerAge65OrOlder-<yes|no>']",
+    "blind": "[id='/primaryFilerIsBlind-<yes|no>']",
+    "dependents": "[id='/primaryFilerIsClaimingDependents-<yes|no>']",
+    "claimedElsewhere": "[id='/primaryFilerIsClaimedOnAnotherReturn-<yes|no>']",
+    "next": "a[href*='/income']"
+  }
+}

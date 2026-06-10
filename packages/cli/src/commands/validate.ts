@@ -26,7 +26,8 @@ const DISALLOWED_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
   { pattern: /\bnavigator\.modelContext\b/, message: 'Direct modelContext access is not allowed' },
   { pattern: /\brequire\s*\(/, message: 'require() is not allowed — use context APIs only' },
   { pattern: /\bimport\s*\(/, message: 'Dynamic import() is not allowed' },
-  { pattern: /\bprocess\b/, message: 'Node.js process object is not allowed' },
+  // Match property access (process.env, process[...]), not the English word
+  { pattern: /\bprocess\s*[.[]/, message: 'Node.js process object is not allowed' },
   { pattern: /\bchildProcess\b/, message: 'child_process is not allowed' },
 ];
 

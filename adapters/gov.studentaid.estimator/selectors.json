@@ -1,0 +1,6 @@
+{
+  "_note": "No selectors. studentaid.gov blocks datacenter IPs (verified 2026-06-10, CI runs 27269295403/27269590345), so the estimator wizard cannot be probed or selector-verified from CI. The adapter is a navigate-and-handoff tool until the wizard is mapped from a residential connection.",
+  "estimator": {
+    "url": "https://studentaid.gov/aid-estimator"
+  }
+}

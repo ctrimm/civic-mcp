@@ -119,8 +119,8 @@ verified against the live site via the
 
 | Adapter | State | Programs | Status |
 |---------|-------|----------|--------|
-| [`gov.california.benefitscal`](adapters/gov.california.benefitscal) | California | CalFresh, CalWORKs, Medi-Cal (official portal) | 🧪 Community (selectors unverified) |
-| [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh (SNAP) via third-party nonprofit site | 🧪 Community (selectors unverified) |
+| [`gov.california.benefitscal`](adapters/gov.california.benefitscal) | California | CalFresh, CalWORKs, Medi-Cal (official portal) | ✅ Entry points live-verified 2026-06-10 |
+| [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh info (site no longer hosts applications — routes to BenefitsCal) | ✅ Live-verified 2026-06-10 |
 | [`gov.colorado.peak`](adapters/gov.colorado.peak) | Colorado | SNAP, Medicaid, Colorado Works, CHP+ | 🧪 Community (selectors unverified) |
 | [`gov.michigan.bridges`](adapters/gov.michigan.bridges) | Michigan | SNAP, Medicaid, Cash | 🧪 Community (selectors unverified) |
 | [`gov.texas.yourtexasbenefits`](adapters/gov.texas.yourtexasbenefits) | Texas | SNAP, TANF, Medicaid, CHIP | 🧪 Community (selectors unverified) |
@@ -130,6 +130,9 @@ verified against the live site via the
 | Adapter | Agency | Services | Status |
 |---------|--------|----------|--------|
 | [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Benefit estimates, life expectancy, office locator, application handoff | ✅ Live-verified 2026-06-10, 12/12 tests ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27268888303)) |
+| [`gov.medicare.eligibility`](adapters/gov.medicare.eligibility) | Medicare (CMS) | Eligibility & premium calculator | ✅ Selectors from live HTML 2026-06-10 |
+| [`gov.irs.withholding`](adapters/gov.irs.withholding) | IRS | Tax Withholding Estimator (About-you step + guided continuation) | ✅ Selectors from live HTML 2026-06-10 |
+| [`gov.studentaid.estimator`](adapters/gov.studentaid.estimator) | Dept. of Education | Federal Student Aid Estimator (human handoff) | 🤝 Handoff-only — studentaid.gov blocks datacenter IPs |
 
 **[Request an adapter →](https://github.com/ctrimm/civic-mcp/issues)**
 

@@ -3,7 +3,7 @@
   "name": "California GetCalFresh",
   "version": "0.1.0",
   "author": "civic-mcp contributors",
-  "description": "WebMCP tools for California CalFresh (SNAP) eligibility screening and application start via GetCalFresh",
+  "description": "Information about applying for CalFresh (SNAP) in California via getcalfresh.org. The site no longer hosts applications \u2014 it routes to BenefitsCal (see gov.california.benefitscal).",
   "homepage": "https://www.getcalfresh.org",
   "repository": "https://github.com/civic-mcp/civic-mcp",
   "license": "MIT",
@@ -13,23 +13,26 @@
   ],
   "tools": [
     {
-      "name": "check_eligibility",
+      "name": "get_application_info",
       "securityLevel": "read_only",
-      "category": "eligibility"
-    },
-    {
-      "name": "start_application",
-      "securityLevel": "write",
-      "category": "application"
+      "category": "info"
     }
   ],
   "permissions": {
-    "required": ["read:forms", "write:forms", "navigate"],
-    "optional": ["storage:local", "notifications"]
+    "required": [
+      "read:forms",
+      "navigate"
+    ],
+    "optional": []
   },
   "trustLevel": "community",
   "verified": false,
   "category": "state_benefits",
-  "tags": ["CalFresh", "SNAP", "Food Assistance", "California"],
+  "tags": [
+    "CalFresh",
+    "SNAP",
+    "Food Assistance",
+    "California"
+  ],
   "state": "CA"
 }

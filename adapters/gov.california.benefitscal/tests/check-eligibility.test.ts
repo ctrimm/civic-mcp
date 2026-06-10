@@ -1,13 +1,10 @@
 /**
- * California BenefitsCal — eligibility screener tests
+ * California BenefitsCal — live tests
  * @live — runs against the live site at benefitscal.com
- *
- * NOTE: selectors are unverified; these tests document expected behavior
- * and will fail until selectors are confirmed against the live site.
  */
 
 import { describe, it, expect, afterAll } from 'vitest';
-import { createHarness, matchers } from '@civic-mcp/testing';
+import { createHarness, HumanRequiredError, matchers } from '@civic-mcp/testing';
 import { resolve } from 'node:path';
 
 expect.extend(matchers);
@@ -20,31 +17,24 @@ const harness = createHarness({
 afterAll(() => harness.close());
 
 describe('gov.california.benefitscal — check_eligibility', () => {
-  it('returns site-reported results for a low-income household', { timeout: 45_000 }, async () => {
-    const result = await harness.testTool('check_eligibility', {
-      zipCode: '90001',
-      householdSize: 2,
-      monthlyGrossIncome: 1200,
-    });
+  it('opens the Do I Qualify screener and reports its content', { timeout: 60_000 }, async () => {
+    const result = await harness.testTool('check_eligibility', {});
 
-    expect(result.success).toBe(true);
+    expect(result).toBeToolSuccess();
     if (result.success) {
-      expect(result.data).toHaveProperty('siteReportedResults');
-      expect(result.data).toHaveProperty('screenerUrl');
+      expect(String(result.data['siteReportedContent']).length).toBeGreaterThan(50);
     }
   });
+});
 
-  it('fails with a useful error when selectors are stale', { timeout: 45_000 }, async () => {
-    // This documents the failure contract: a selector miss must return
-    // success: false with code SELECTOR_NOT_FOUND, never throw.
-    const result = await harness.testTool('check_eligibility', {
-      zipCode: '94105',
-      householdSize: 1,
-      monthlyGrossIncome: 5000,
-    });
-
-    if (!result.success) {
-      expect(result.error).toBeTruthy();
+describe('gov.california.benefitscal — start_application (human handoff)', () => {
+  it('opens the official application / raises HumanRequiredError headless', { timeout: 60_000 }, async () => {
+    try {
+      const result = await harness.testTool('start_application', {});
+      expect(result).toBeToolSuccess(); // headed: human finished
+    } catch (err) {
+      if (err instanceof HumanRequiredError) return; // headless: expected
+      throw err;
     }
   });
 });

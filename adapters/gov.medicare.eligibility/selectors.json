@@ -1,0 +1,15 @@
+{
+  "_note": "VERIFIED 2026-06-10 from live form HTML (CI run 27269590345). The calculator is a client-side widget behind entry buttons; #btnEligibility routes to #/eligibility.",
+  "calculator": {
+    "url": "https://www.medicare.gov/eligibilitypremiumcalc",
+    "entryEligibility": "#btnEligibility",
+    "entryPremium": "#btnPremium",
+    "form": "#eligibilityForm",
+    "birthMonth": "#under65__month",
+    "birthDay": "#under65__day",
+    "birthYear": "#under65__year",
+    "ficaYes": "#fica__choice--0",
+    "ficaNo": "#fica__choice--1",
+    "submit": "#btnEligibilitySubmit"
+  }
+}

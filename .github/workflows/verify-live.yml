@@ -32,7 +32,7 @@ on:
       - 'packages/testing/**'
 
 env:
-  ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement' }}
+  ADAPTER: ${{ inputs.adapter || 'gov.ssa.retirement gov.california.getcalfresh gov.california.benefitscal gov.medicare.eligibility gov.irs.withholding gov.studentaid.estimator' }}
   PROBE_URL: ${{ inputs.probe_url || 'https://www.getcalfresh.org/en/ https://www.getcalfresh.org/en/apply https://benefitscal.com/::click=#HomePage_doIQualify_btn https://www.medicare.gov/eligibilitypremiumcalc::click=#btnEligibility https://www.medicare.gov/eligibilitypremiumcalc::click=#btnPremium https://studentaid.gov/aid-estimator https://apps.irs.gov/app/tax-withholding-estimator' }}
 
 jobs:
@@ -62,4 +62,7 @@ jobs:
         run: pnpm --filter @civic-mcp/testing exec node scripts/dump-form-html.mjs "$PROBE_URL"
 
       - name: Run live adapter tests
-        run: pnpm exec vitest run "adapters/$ADAPTER" --config vitest.config.mts
+        run: |
+          args=""
+          for a in $ADAPTER; do args="$args adapters/$a"; done
+          pnpm exec vitest run $args --config vitest.config.mts

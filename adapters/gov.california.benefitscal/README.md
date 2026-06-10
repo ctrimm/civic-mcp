@@ -5,11 +5,14 @@ portal for CalFresh (SNAP), CalWORKs, Medi-Cal, and General Assistance.
 
 - **Author**: civic-mcp contributors
 - **Trust level**: Community
-- **Last verified**: never (selectors unverified)
+- **Last verified**: 2026-06-10 (entry points, via live CI probe)
 
-> ⚠️ Selectors in this adapter are best-effort and have **not** been verified
-> against the live site. Verify and update before relying on it, and report
-> breakage at <https://github.com/ctrimm/civic-mcp/issues>.
+> Entry points (homepage buttons, application begin URL) were verified
+> against the live site on 2026-06-10 (CI runs
+> [27269295403](https://github.com/ctrimm/civic-mcp/actions/runs/27269295403),
+> [27269590345](https://github.com/ctrimm/civic-mcp/actions/runs/27269590345)).
+> BenefitsCal is an Angular SPA — flows beyond the entry points are reported
+> as the site presents them, not automated blindly.
 
 ## Tools
 

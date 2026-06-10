@@ -132,6 +132,66 @@
       "rating": 0,
       "state": "TX",
       "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.texas.yourtexasbenefits"
+    },
+    {
+      "id": "gov.medicare.eligibility",
+      "name": "Medicare Eligibility Calculator",
+      "description": "Official Medicare.gov eligibility & premium calculator \u2014 eligibility dates and premium estimates",
+      "latestVersion": "0.1.0",
+      "category": "federal_services",
+      "tags": [
+        "Medicare",
+        "health",
+        "seniors",
+        "eligibility"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.medicare.eligibility/manifest.json",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.medicare.eligibility",
+      "updatedAt": "2026-06-10T00:00:00Z",
+      "installs": 0,
+      "rating": 0
+    },
+    {
+      "id": "gov.irs.withholding",
+      "name": "IRS Tax Withholding Estimator",
+      "description": "Official IRS Tax Withholding Estimator \u2014 checks W-4 withholding against expected tax",
+      "latestVersion": "0.1.0",
+      "category": "federal_services",
+      "tags": [
+        "IRS",
+        "taxes",
+        "W-4",
+        "withholding"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.irs.withholding/manifest.json",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.irs.withholding",
+      "updatedAt": "2026-06-10T00:00:00Z",
+      "installs": 0,
+      "rating": 0
+    },
+    {
+      "id": "gov.studentaid.estimator",
+      "name": "Federal Student Aid Estimator",
+      "description": "Official Federal Student Aid Estimator (pre-FAFSA aid preview) \u2014 human handoff, studentaid.gov blocks datacenter IPs",
+      "latestVersion": "0.1.0",
+      "category": "federal_services",
+      "tags": [
+        "FAFSA",
+        "student aid",
+        "Pell Grant",
+        "education"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.studentaid.estimator/manifest.json",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.studentaid.estimator",
+      "updatedAt": "2026-06-10T00:00:00Z",
+      "installs": 0,
+      "rating": 0
     }
   ],
   "categories": [

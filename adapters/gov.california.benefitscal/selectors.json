@@ -1,24 +1,13 @@
 {
-  "_note": "Selectors for benefitscal.com. UNVERIFIED — best-effort selectors, verify against the live site. BenefitsCal is a modern SPA; prefer data-testid and aria-label based selectors where available.",
-  "preScreener": {
-    "url": "https://benefitscal.com/help-me-find/am-i-eligible",
-    "zipCode": "input[name='zipCode'], input[name='zip'], input#zipCode, input[placeholder*='ZIP' i]",
-    "householdSize": "input[name='householdSize'], select[name='householdSize'], input#householdSize",
-    "monthlyIncome": "input[name='monthlyIncome'], input[name='income'], input#monthlyIncome",
-    "submit": "button[type='submit'], button.continue, [data-testid='submit']",
-    "results": ".results, .eligibility-results, [data-testid='results']"
-  },
-  "dashboard": {
-    "url": "https://benefitscal.com/dashboard",
-    "loginIndicators": "input[type='password'], form[action*='login' i], #signin, #login",
-    "caseSummary": ".case-summary, .cases, [data-testid='cases']"
+  "_note": "Entry points VERIFIED 2026-06-10 against the live site (CI runs 27269295403, 27269590345). BenefitsCal is an Angular SPA; flows beyond these entry points are reported as presented, not automated.",
+  "home": {
+    "url": "https://benefitscal.com/",
+    "doIQualify": "#HomePage_doIQualify_btn",
+    "login": "#HomePage_login_btn",
+    "createAccount": "#HomePage_create_account_btn"
   },
   "application": {
-    "url": "https://benefitscal.com/apply",
-    "firstName": "input[name='firstName'], input#firstName",
-    "lastName": "input[name='lastName'], input#lastName",
-    "email": "input[name='email'], input[type='email']",
-    "phone": "input[name='phone'], input[type='tel']",
-    "zip": "input[name='zip'], input[name='zipCode']"
+    "beginUrl": "https://benefitscal.com/ApplyForBenefits/begin/ABOVR?lang=en",
+    "_source": "Official apply link published by getcalfresh.org"
   }
 }
