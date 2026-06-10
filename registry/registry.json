@@ -67,6 +67,28 @@
       "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.california.getcalfresh"
     },
     {
+      "id": "gov.california.benefitscal",
+      "name": "California BenefitsCal",
+      "description": "Tools for BenefitsCal — California's official portal for CalFresh (SNAP), CalWORKs, and Medi-Cal: eligibility pre-screening, case status, and application start",
+      "latestVersion": "0.1.0",
+      "category": "state_benefits",
+      "tags": [
+        "CalFresh",
+        "SNAP",
+        "CalWORKs",
+        "Medi-Cal",
+        "California"
+      ],
+      "trustLevel": "community",
+      "verified": false,
+      "manifestUrl": "https://raw.githubusercontent.com/ctrimm/civic-mcp/main/adapters/gov.california.benefitscal/manifest.json",
+      "sourceUrl": "https://github.com/ctrimm/civic-mcp/tree/main/adapters/gov.california.benefitscal",
+      "updatedAt": "2026-06-10T00:00:00Z",
+      "installs": 0,
+      "rating": 0,
+      "state": "CA"
+    },
+    {
       "id": "gov.michigan.bridges",
       "name": "Michigan MI Bridges",
       "description": "WebMCP tools for Michigan SNAP, Medicaid, and Cash Assistance applications via MI Bridges",
@@ -114,7 +136,7 @@
     {
       "id": "state_benefits",
       "name": "State Benefits Programs",
-      "count": 4
+      "count": 5
     },
     {
       "id": "federal",

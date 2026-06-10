@@ -1,0 +1,37 @@
+{
+  "id": "gov.california.benefitscal",
+  "name": "California BenefitsCal",
+  "version": "0.1.0",
+  "author": "civic-mcp contributors",
+  "description": "Tools for BenefitsCal — California's official portal for CalFresh (SNAP), CalWORKs, and Medi-Cal: eligibility pre-screening, case status, and application start",
+  "homepage": "https://benefitscal.com",
+  "repository": "https://github.com/ctrimm/civic-mcp",
+  "license": "MIT",
+  "domains": [
+    "benefitscal.com",
+    "www.benefitscal.com"
+  ],
+  "tools": [
+    {
+      "name": "check_eligibility",
+      "securityLevel": "read_only",
+      "category": "eligibility"
+    },
+    {
+      "name": "get_case_status",
+      "securityLevel": "read_only",
+      "category": "status"
+    },
+    {
+      "name": "start_application",
+      "securityLevel": "write",
+      "category": "application"
+    }
+  ],
+  "permissions": {
+    "required": ["read:forms", "write:forms", "navigate"],
+    "optional": ["storage:local", "human-in-the-loop"]
+  },
+  "trustLevel": "community",
+  "verified": false
+}
