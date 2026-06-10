@@ -1,5 +1,22 @@
 # @civic-mcp/extension
 
+> ⚠️ **EXPERIMENTAL — not functional end-to-end.** The supported way to use
+> civic-mcp today is the [MCP server](../mcp-server). This extension is the
+> long-term bet for when [WebMCP](https://webmachinelearning.github.io/webmcp/)
+> ships broadly in browsers. Known structural gaps before it can work:
+>
+> 1. **Adapter delivery** — the install flow fetches only `manifest.json`,
+>    never adapter code; and adapters are TypeScript, which the sandbox's
+>    `new Function()` cannot execute. Needs a compile-and-bundle step
+>    (adapters shipped inside extension releases, not fetched at runtime —
+>    also required by Chrome Web Store remote-code policy).
+> 2. **Cross-navigation orchestration** — `page.navigate()` destroys the
+>    content-script context, so any multi-page tool flow dies mid-call.
+>    Orchestration must move to the service worker.
+> 3. **Unverified assumption** — that `navigator.modelContext` is reachable
+>    from a content script's isolated world at all. Verify in Chrome Canary
+>    before building further.
+
 Chrome Manifest V3 extension — the core runtime that loads adapters, sandboxes their code, registers tools via `navigator.modelContext` (WebMCP), and provides the marketplace / popup / settings UI.
 
 ## Prerequisites

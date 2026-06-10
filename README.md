@@ -1,13 +1,21 @@
 # civic-mcp
 
-> WebMCP abstraction layer for government websites — install adapters for any state or federal service and let AI agents navigate forms, check eligibility, and submit applications on behalf of citizens.
+> An MCP server (plus community adapters) that lets AI agents help people navigate government websites — check eligibility, track cases, and start benefit applications. Works today with Claude Desktop, Cursor, and any MCP client. No browser flags, no extension required.
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![Chrome 146+](https://img.shields.io/badge/Chrome-146%2B-yellow.svg)](https://developer.chrome.com/blog/webmcp-epp)
-[![WebMCP](https://img.shields.io/badge/WebMCP-W3C%20Draft-green.svg)](https://webmachinelearning.github.io/webmcp/)
+[![MCP](https://img.shields.io/badge/MCP-stdio-green.svg)](https://modelcontextprotocol.io/)
+[![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-orange.svg)](#project-status)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 ---
+
+## Project Status
+
+**Pre-alpha.** The MCP server, SDK, CLI, and test harness build and run; adapter
+selectors have **not yet been verified against live government sites**. Treat every
+adapter as a starting point that needs verification, not a finished integration.
+An experimental Chrome extension also lives in this repo — see
+[Experimental: Chrome extension](#experimental-chrome-extension--webmcp).
 
 ## The Problem
 
@@ -17,16 +25,18 @@ Meanwhile, the vendors who built these portals have no incentive to expose APIs.
 
 ## The Solution
 
-`civic-mcp` injects a thin [WebMCP](https://webmachinelearning.github.io/webmcp/) abstraction layer into government websites via a Chrome extension. Instead of an agent guessing which button to click, the site exposes structured, callable tools — and the agent uses them directly.
-
-No backend changes. No vendor cooperation. No multi-year API development projects.
+`civic-mcp` ships a **standalone MCP server** that loads community-written site
+adapters and drives a real browser (Playwright) on the user's machine. Each adapter
+turns one government website into a set of structured, callable tools:
 
 ```
 Before: agent → screenshot → vision model → click → hope it worked
-After:  agent → civic-mcp → registerTool() → execute() → structured JSON
+After:  agent → MCP tool call → adapter drives the site → structured JSON
 ```
 
-Adapters are community-contributed and independently maintained — one per government site. You install only what you need.
+No backend changes. No vendor cooperation. No multi-year API development projects.
+Adapters are community-contributed and independently maintained — one per
+government site.
 
 ---
 
@@ -34,42 +44,20 @@ Adapters are community-contributed and independently maintained — one per gove
 
 ### Prerequisites
 
-- Chrome 146+ (or Chrome Canary)
-- Enable **WebMCP for testing** in `chrome://flags`
+- Node.js 18+ and [pnpm](https://pnpm.io)
+- A Chromium build for Playwright (`npx playwright install chromium`)
 
-### Install the Extension
+### Install
 
 ```bash
-# Option 1: Chrome Web Store (coming soon)
-
-# Option 2: Build from source
 git clone https://github.com/ctrimm/civic-mcp.git
 cd civic-mcp
-npm install
-npm run build:extension
+pnpm install
 ```
 
-Then load `packages/extension/dist` as an unpacked extension via `chrome://extensions`.
+### Connect to an AI client
 
-### Install Adapters
-
-Open the extension popup and click **Browse Adapters**, or install via CLI:
-
-```bash
-npm install -g @civic-mcp/cli
-
-civic-mcp install gov.colorado.peak
-civic-mcp install gov.california.getcalfresh
-civic-mcp install gov.federal.ssa
-```
-
-### Connect to an AI Agent
-
-There are two ways to wire civic-mcp into a MCP-compatible client (Claude Desktop, Cursor, etc.):
-
-**Option A — Standalone MCP server** (recommended, no extension needed)
-
-Add to `~/.claude/claude_desktop_config.json` (or your client's MCP config):
+Add to `~/.claude/claude_desktop_config.json` (or Cursor's `~/.cursor/mcp.json`):
 
 ```json
 {
@@ -83,35 +71,51 @@ Add to `~/.claude/claude_desktop_config.json` (or your client's MCP config):
 }
 ```
 
-The server scans the `adapters/` directory on startup, registers every tool, and drives a Playwright browser in the background. Set `CIVIC_MCP_HEADED=1` for tools that require a visible browser (e.g. solving a CAPTCHA with `waitForHuman()`).
+The server scans `adapters/` on startup and registers every tool. Then ask your agent:
 
-**Option B — Chrome extension + DevTools bridge** (browser-context tools)
+> *"Estimate my Social Security retirement benefit — I was born in 1965 and earn $74,000."*
 
-```json
-{
-  "mcpServers": {
-    "civic-mcp": {
-      "command": "npx",
-      "args": ["@mcp-b/chrome-devtools-mcp@latest"]
-    }
-  }
-}
-```
+### Configuration
 
-Install the extension, open the target site in Chrome, then ask Claude:
+| Env var | Default | Effect |
+|---|---|---|
+| `CIVIC_MCP_HEADED` | off | Visible browser window — needed for logins, CAPTCHAs, and `waitForHuman()` steps |
+| `CIVIC_MCP_ALLOW_WRITE` | off | Enables **write tools** (those that fill/submit real applications). Off by default for safety |
+| `CIVIC_MCP_IDENTITY` | `default` | Which [portable identity](docs/identity.md) to use |
+| `CIVIC_MCP_ADAPTERS_DIR` | `adapters/` | Where to load adapters from |
+| `CIVIC_MCP_TIMEOUT` | `60000` | Per-action timeout (ms) |
 
-> *"Check if a household of 3 with $2,400/month income is eligible for SNAP and Medicaid in Colorado."*
+### Identities: logins and applicant data that persist
+
+The server keeps everything tied to a named **identity** at
+`~/.civic-mcp/identities/<name>/`:
+
+- **Logins persist** — sign in to a portal once (headed mode); the session is
+  remembered across tool calls *and* server restarts.
+- **Multi-step flows work** — each adapter keeps its page open between calls.
+- **Applicant profile** — save name/address/household/income once with the
+  `identity_set_profile` tool; adapters prefill forms from it. Stored encrypted
+  with an OS-keychain key. Full SSNs are refused, always.
+- **Multiple people** — `CIVIC_MCP_IDENTITY=mom` keeps a family member's or
+  client's data fully separate. Built for caseworkers and benefits navigators.
+
+Built-in tools: `identity_get_profile`, `identity_set_profile`, `session_reset`.
+Full details: [docs/identity.md](docs/identity.md).
 
 ---
 
 ## Available Adapters
 
+All adapters are currently **community-tier with unverified selectors** — see
+[Project Status](#project-status).
+
 ### State Benefits
 
 | Adapter | State | Programs | Status |
 |---------|-------|----------|--------|
+| [`gov.california.benefitscal`](adapters/gov.california.benefitscal) | California | CalFresh, CalWORKs, Medi-Cal (official portal) | 🧪 Community (selectors unverified) |
+| [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh (SNAP) via third-party nonprofit site | 🧪 Community (selectors unverified) |
 | [`gov.colorado.peak`](adapters/gov.colorado.peak) | Colorado | SNAP, Medicaid, Colorado Works, CHP+ | 🧪 Community (selectors unverified) |
-| [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh (SNAP) | 🧪 Community (selectors unverified) |
 | [`gov.michigan.bridges`](adapters/gov.michigan.bridges) | Michigan | SNAP, Medicaid, Cash | 🧪 Community (selectors unverified) |
 | [`gov.texas.yourtexasbenefits`](adapters/gov.texas.yourtexasbenefits) | Texas | SNAP, TANF, Medicaid, CHIP | 🧪 Community (selectors unverified) |
 
@@ -120,11 +124,8 @@ Install the extension, open the target site in Chrome, then ask Claude:
 | Adapter | Agency | Services | Status |
 |---------|--------|----------|--------|
 | [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Retirement benefit estimates, application start | 🧪 Community (selectors unverified) |
-| [`gov.federal.va`](adapters/gov.federal.va) | Dept. of Veterans Affairs | Benefits, Healthcare | 🚧 Planned |
-| [`gov.federal.benefits`](adapters/gov.federal.benefits) | Benefits.gov | Multi-program screener | 🚧 Planned |
 
-**[Browse all adapters →](https://civic-mcp.dev/adapters)**
-**[Request an adapter →](https://github.com/ctrimm/civic-mcp/issues/new?template=adapter-request.md)**
+**[Request an adapter →](https://github.com/ctrimm/civic-mcp/issues)**
 
 ---
 
@@ -133,27 +134,21 @@ Install the extension, open the target site in Chrome, then ask Claude:
 ```
 civic-mcp/
 ├── packages/
-│   ├── extension/          # Chrome extension (core runtime)
-│   │   ├── src/
-│   │   │   ├── core/       # Plugin loader, sandbox, registry client
-│   │   │   ├── ui/         # Popup, marketplace, settings
-│   │   │   └── background/ # Service worker
-│   │   └── manifest.json
-│   ├── mcp-server/         # Standalone MCP server — exposes all adapters to
+│   ├── mcp-server/         # ★ The MCP server — exposes all adapters to
 │   │                       #   Claude Desktop, Cursor, and any MCP client
-│   │                       #   over stdio JSON-RPC (no extension required)
+│   │                       #   over stdio JSON-RPC; drives Playwright
+│   ├── sdk/                # Adapter development SDK + shared types
 │   ├── cli/                # civic-mcp CLI for adapter development
-│   ├── sdk/                # Adapter development SDK + types
-│   └── testing/            # Test harness for adapter authors
+│   ├── testing/            # Test harness for adapter authors
+│   └── extension/          # EXPERIMENTAL Chrome extension (see below)
 ├── adapters/               # Community-contributed site adapters
-│   ├── gov.colorado.peak/
-│   ├── gov.california.getcalfresh/
+│   ├── gov.california.benefitscal/
 │   ├── gov.ssa.retirement/
 │   └── .../
 ├── registry/               # Adapter registry metadata
 │   ├── registry.json       # Master adapter list
-│   └── verified.json       # Verified publisher list
-├── docs/                   # Documentation site source
+│   └── verified.json       # Verified publishers (empty — no process yet)
+├── docs/                   # Documentation (identity.md, ...)
 └── scripts/                # Build and maintenance scripts
 ```
 
@@ -161,135 +156,115 @@ civic-mcp/
 
 ## Writing an Adapter
 
-Adapters are the heart of civic-mcp. Anyone can write one. The simplest adapter is **pure JSON** — no JavaScript required.
+An adapter is a directory under `adapters/` with a `manifest.json` and an
+`adapter.ts` that default-exports tools:
 
-### Declarative Adapter (Recommended)
+```typescript
+// adapters/gov.example.benefits/adapter.ts
+import type { AdapterModule, SandboxContext, ToolResult } from '@civic-mcp/sdk';
 
-```json
-{
-  "id": "gov.example.benefits",
-  "name": "Example State Benefits",
-  "version": "1.0.0",
-  "domains": ["benefits.example.gov"],
-  "declarative": true,
-  "tools": [
-    {
-      "name": "check_eligibility",
-      "description": "Pre-screen eligibility for state benefits",
-      "navigation": {
-        "url": "https://benefits.example.gov/screener",
-        "waitForSelector": "form#screener"
-      },
-      "inputs": {
-        "householdSize": {
-          "selector": "input[name='household_size']",
-          "type": "number",
-          "required": true
-        },
-        "monthlyIncome": {
-          "selector": "input[name='monthly_income']",
-          "type": "number",
-          "required": true
-        }
-      },
-      "submit": { "selector": "button[type='submit']" },
-      "output": {
-        "eligible": { "selector": ".result .eligible", "type": "boolean" },
-        "message": { "selector": ".result .message", "type": "text" }
-      }
-    }
-  ],
-  "permissions": {
-    "required": ["read:forms", "write:forms"]
-  }
-}
-```
-
-### JavaScript Adapter (Complex Workflows)
-
-```javascript
-// adapters/gov.example.benefits/adapter.js
-export default {
+const adapter: AdapterModule = {
   id: 'gov.example.benefits',
-
-  async init(context) {
-    // Called once when adapter loads on the target page
-  },
-
   tools: [
     {
-      name: 'start_application',
-      description: 'Begin a new benefits application',
+      name: 'check_eligibility',
+      description: 'Pre-screen eligibility for state benefits',
       inputSchema: {
         type: 'object',
         properties: {
-          firstName: { type: 'string' },
-          lastName: { type: 'string' },
-          dateOfBirth: { type: 'string', format: 'date' },
+          householdSize: { type: 'number', minimum: 1 },
+          monthlyIncome: { type: 'number', minimum: 0 },
         },
-        required: ['firstName', 'lastName', 'dateOfBirth'],
+        required: ['householdSize', 'monthlyIncome'],
       },
-
-      async execute(params, context) {
-        const { page, storage, notify } = context;
-
-        await page.navigate('https://benefits.example.gov/apply');
-        await page.fillField('input[name="first_name"]', params.firstName);
-        await page.fillField('input[name="last_name"]', params.lastName);
-        await page.fillField('input[name="dob"]', params.dateOfBirth);
-        await page.click('button#continue');
-
-        const appId = await page.getText('.confirmation-number');
-        return { success: true, applicationId: appId };
+      async execute(params, context): Promise<ToolResult> {
+        const { page } = context;
+        await page.navigate('https://benefits.example.gov/screener', {
+          waitForSelector: 'form#screener',
+        });
+        await page.fillField('input[name="household_size"]', String(params.householdSize));
+        await page.fillField('input[name="monthly_income"]', String(params.monthlyIncome));
+        await page.click('button[type="submit"]', { waitForNavigation: true });
+        const message = await page.getText('.result .message');
+        // Report what the site says — never compute eligibility locally
+        return { success: true, data: { siteReportedResult: message } };
       },
     },
   ],
 };
+
+export default adapter;
 ```
 
-### Scaffold a New Adapter
+Adapter ground rules:
+
+- **Declare `securityLevel`** (`read_only` | `write`) for every tool in the
+  manifest — it maps to MCP annotations and the write gate.
+- **Report, don't compute.** Extract results from the site; hardcoded income
+  tables go stale and give people wrong answers about their benefits.
+- **Pause for humans** at logins, CAPTCHAs, and before anything is submitted
+  (`page.waitForHuman()`).
+- **Never handle full SSNs.** The identity store refuses them; tools that need
+  one must hand the browser to the human.
+
+Scaffold and validate with the CLI:
 
 ```bash
-civic-mcp create adapter
-
-? Adapter ID: gov.newstate.portal
-? Name: New State Benefits Portal
-? Website: https://portal.newstate.gov
-? Programs: SNAP, Medicaid
-
-✓ Created adapters/gov.newstate.portal/
+node packages/cli/bin/civic-mcp create adapter   # scaffold
+node packages/cli/bin/civic-mcp validate adapters/gov.newstate.portal/
 ```
-
-**[Full adapter development guide →](docs/adapters/creating-adapters.md)**
 
 ---
 
 ## Security Model
 
-### Adapter Trust Levels
+### Write gating
 
-| Level | Who | Review | Capabilities |
-|-------|-----|--------|--------------|
-| 🔵 **Official** | Government agencies | Audit + digital signature | All operations |
-| 🟢 **Verified** | Known civic tech orgs | Code review by maintainers | Standard operations |
-| 🟡 **Community** | Anyone | Automated scan + peer review | Standard operations |
+Tools that fill or submit real applications are declared `securityLevel: "write"`
+in the adapter manifest. They are:
 
-### Sandbox Guarantees
+1. advertised to MCP clients with `destructiveHint` annotations, **and**
+2. refused by the server unless it was started with `CIVIC_MCP_ALLOW_WRITE=1`.
 
-All adapters run in a security sandbox regardless of trust level. Adapters **cannot**:
+Read-only tools (eligibility screeners, status checks, benefit estimates) run
+without the flag.
 
-- Call `eval()`, `Function()`, or `new Function()`
-- Make `fetch()` requests outside declared domains
-- Access `navigator.modelContext` directly
-- Read or write cookies
-- Access other adapters' storage
-- Load external scripts
+### PII rules
 
-Adapters can only interact through the controlled `context` API — equivalent to what a logged-in human could do manually.
+- Applicant data lives only in the local, per-identity store — encrypted with an
+  OS-keychain key, `0700`/`0600` permissions ([details](docs/identity.md)).
+- Full SSNs are **never stored**; only `ssnLast4` is accepted.
+- Adapters get read-only access to the applicant profile; only the user (via the
+  `identity_set_profile` tool) can write it.
 
-### Reporting Security Issues
+### Adapter trust levels
+
+| Level | Who | Review | Current count |
+|-------|-----|--------|---------------|
+| 🔵 **Official** | Government agencies | Audit + digital signature | 0 |
+| 🟢 **Verified** | Known civic tech orgs | Code review by maintainers | 0 — no verification process exists yet |
+| 🟡 **Community** | Anyone | Automated checks (`civic-mcp validate`) | 6 |
+
+### Reporting security issues
 
 Report vulnerabilities privately via [SECURITY.md](SECURITY.md). Do **not** open public issues for security bugs.
+
+---
+
+## Experimental: Chrome extension + WebMCP
+
+`packages/extension/` contains an experimental Chrome (MV3) extension built on
+the [WebMCP](https://webmachinelearning.github.io/webmcp/) draft standard
+(`navigator.modelContext`, behind a flag in Chrome 146+). It is **not functional
+end-to-end yet** — known structural gaps include adapter delivery/compilation,
+cross-navigation orchestration, and Chrome Web Store remote-code policy. The MCP
+server is the supported path today; the extension is the long-term bet for when
+WebMCP ships broadly.
+
+The MCP server also injects an experimental **WebMCP polyfill stub** into pages
+it drives: when a government site starts registering its own
+`navigator.modelContext` tools, civic-mcp logs it — and bridging those native
+tools straight to MCP becomes the upgrade path.
 
 ---
 
@@ -297,29 +272,13 @@ Report vulnerabilities privately via [SECURITY.md](SECURITY.md). Do **not** open
 
 We welcome all kinds of contributions.
 
-**Contribute an adapter** — the highest-impact contribution. See the [adapter development guide](docs/adapters/creating-adapters.md).
+**Contribute an adapter** — the highest-impact contribution. The most valuable
+PR right now is *verifying an existing adapter's selectors against the live
+site* and fixing what's broken.
 
-```bash
-civic-mcp create adapter   # scaffold
-civic-mcp test             # test locally
-civic-mcp publish          # submit to registry
-```
-
-**Improve the core extension** — see [packages/extension/CONTRIBUTING.md](packages/extension/CONTRIBUTING.md).
-
-**Improve documentation** — see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
-
-**Report a bug or request an adapter** — use [GitHub Issues](https://github.com/ctrimm/civic-mcp/issues).
+**Improve the MCP server or SDK** — see open [GitHub Issues](https://github.com/ctrimm/civic-mcp/issues).
 
 **[Full contribution guide →](CONTRIBUTING.md)**
-
----
-
-## Governance
-
-civic-mcp is maintained by a coalition of civic technology organizations. Core decisions are made via [RFC process](docs/rfcs/). Adapter reviews are handled by domain-specific working groups.
-
-See [MAINTAINERS.md](MAINTAINERS.md) and [GOVERNANCE.md](GOVERNANCE.md).
 
 ---
 
@@ -329,32 +288,32 @@ Government services are public goods. The software that makes them more accessib
 
 AGPL ensures that anyone who deploys civic-mcp as a networked service — including government vendors and SaaS providers — must contribute their improvements back to the commons. MIT or Apache would allow a vendor to fork this, add proprietary adapters, and sell access to them, recreating exactly the lock-in we're trying to break.
 
-AGPL closes that door. Individual users and government agencies using the extension are unaffected — the license only activates when you run a modified version as a service for others.
+AGPL closes that door. Individual users and government agencies running the tools locally are unaffected — the license only activates when you run a modified version as a service for others.
 
 ---
 
 ## Roadmap
 
-| Milestone | Target | Status |
-|-----------|--------|--------|
-| Core extension + plugin loader | Q1 2026 | 🔄 In Progress |
-| CLI tooling + adapter SDK | Q1 2026 | 🔄 In Progress |
-| Standalone MCP server bridge | Q1 2026 | 🔄 In Progress |
-| 5 verified adapters | Q2 2026 | 🚧 Planned |
-| Chrome Web Store launch | Q2 2026 | 🚧 Planned |
-| 25 state adapters | Q3 2026 | 🚧 Planned |
-| Federal agency adapters | Q3 2026 | 🔄 In Progress |
-| Adapter certification program | Q4 2026 | 🚧 Planned |
+| Milestone | Status |
+|-----------|--------|
+| Standalone MCP server (annotations, write gating, identities) | ✅ Built — needs live-site verification |
+| First adapter verified end-to-end against a live site | 🔄 Next up |
+| SDK, CLI, test harness | ✅ Built |
+| Live selector verification for all 6 adapters | 🚧 Planned |
+| Adapter verification process + verified tier | 🚧 Planned |
+| WebMCP polyfill → full MCP bridge | 🧪 Stub shipped, bridge planned |
+| Chrome extension (WebMCP) functional end-to-end | 🧪 Experimental |
+| 25 state adapters | 🚧 Planned |
 
 ---
 
 ## Related Projects
 
-- [WebMCP Specification](https://webmachinelearning.github.io/webmcp/) — W3C draft standard this is built on
-- [Model Context Protocol](https://modelcontextprotocol.io/) — Anthropic's agent tool protocol
+- [Model Context Protocol](https://modelcontextprotocol.io/) — the protocol this server speaks
+- [WebMCP Specification](https://webmachinelearning.github.io/webmcp/) — W3C draft standard the extension builds on
 - [mcp-b / chrome-devtools-mcp](https://github.com/WebMCP-org/chrome-devtools-quickstart) — Chrome DevTools bridge for WebMCP
-- [Code for America](https://codeforamerica.org) — Civic tech ecosystem
-- [Nava PBC](https://navapbc.com) — Government digital services
+- [Code for America](https://codeforamerica.org) — civic tech ecosystem
+- [Nava PBC](https://navapbc.com) — government digital services
 
 ---
 
