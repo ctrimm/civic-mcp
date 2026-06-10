@@ -42,14 +42,18 @@ const adapter: AdapterModule = {
       async execute(_params: Record<string, never>, context: SandboxContext): Promise<ToolResult> {
         const { page, utils } = context;
         try {
-          await page.navigate(`${BASE}/`, {
-            waitForSelector: '#HomePage_doIQualify_btn',
-            timeout: 30_000,
-          });
+          await page.navigate(`${BASE}/`, { timeout: 45_000 });
+          await utils.sleep(4_000); // Angular boot + personalization framework
 
-          // Verified entry button (live probe 2026-06-10)
-          await page.click('#HomePage_doIQualify_btn', { timeout: 15_000 });
-          await utils.sleep(3_000); // Angular route/modal render
+          // Verified entry button (live probe 2026-06-10). The homepage runs a
+          // personalization framework (lift-ux), so the button occasionally
+          // renders late or not at all — degrade gracefully to homepage info.
+          let opened = false;
+          if (await page.exists('#HomePage_doIQualify_btn')) {
+            await page.click('#HomePage_doIQualify_btn', { timeout: 15_000 });
+            await utils.sleep(3_000); // route/modal render
+            opened = true;
+          }
 
           const screenerText =
             (await page.getText('main')) ?? (await page.getText('body')) ?? '';
@@ -57,9 +61,12 @@ const adapter: AdapterModule = {
           return {
             success: true,
             data: {
+              screenerOpened: opened,
               siteReportedContent: screenerText.replace(/\s+/g, ' ').trim().slice(0, 2_500),
               currentUrl: page.currentUrl(),
-              note: 'Pre-screening only — not an eligibility determination. Apply to get a real decision.',
+              note: opened
+                ? 'Pre-screening only — not an eligibility determination. Apply to get a real decision.'
+                : 'The "Do I Qualify" button was not present on this page load (BenefitsCal personalizes its homepage). Reported the homepage content instead.',
             },
           };
         } catch (err) {

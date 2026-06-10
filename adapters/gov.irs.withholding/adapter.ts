@@ -74,14 +74,17 @@ const adapter: AdapterModule = {
       ): Promise<ToolResult> {
         const { page, utils, notify } = context;
 
-        // Fact-graph ids contain slashes — use attribute selectors
-        const radio = (name: string, value: string) => `[id='/${name}-${value}']`;
+        // Fact-graph ids contain slashes — use attribute selectors.
+        // USWDS visually hides the radio <input> off-screen; the <label>
+        // is the clickable element (live run 27270279495 proved clicking
+        // the input times out with "element is outside of the viewport").
+        const radio = (name: string, value: string) => `label[for='/${name}-${value}']`;
         const yn = (v: boolean) => (v ? 'yes' : 'no');
 
         try {
           notify.info('Loading the IRS Tax Withholding Estimator…');
           await page.navigate(APP_URL, {
-            waitForSelector: radio('filingStatus', 'single'),
+            waitForSelector: "[id='/filingStatus-single']",
             timeout: 45_000,
           });
 

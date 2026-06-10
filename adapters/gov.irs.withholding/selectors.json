@@ -1,12 +1,12 @@
 {
-  "_note": "Page-1 selectors VERIFIED 2026-06-10 from live app HTML (CI run 27269590345). Fact-graph ids contain slashes — use attribute selectors. Income-step and later pages are not yet mapped.",
+  "_note": "Page-1 selectors VERIFIED 2026-06-10 from live app HTML (CI run 27269590345). Fact-graph ids contain slashes \u2014 use attribute selectors. Click the <label for=...>, not the input: USWDS hides radio inputs off-screen. Income-step and later pages are not yet mapped.",
   "aboutYou": {
     "url": "https://apps.irs.gov/app/tax-withholding-estimator",
-    "filingStatus": "[id='/filingStatus-<single|marriedFilingJointly|marriedFilingSeparately|headOfHousehold|qualifiedSurvivingSpouse>']",
-    "age65": "[id='/primaryFilerAge65OrOlder-<yes|no>']",
-    "blind": "[id='/primaryFilerIsBlind-<yes|no>']",
-    "dependents": "[id='/primaryFilerIsClaimingDependents-<yes|no>']",
-    "claimedElsewhere": "[id='/primaryFilerIsClaimedOnAnotherReturn-<yes|no>']",
+    "filingStatus": "label[for='/filingStatus-<single|marriedFilingJointly|marriedFilingSeparately|headOfHousehold|qualifiedSurvivingSpouse>']",
+    "age65": "label[for='/primaryFilerAge65OrOlder-<yes|no>']",
+    "blind": "label[for='/primaryFilerIsBlind-<yes|no>']",
+    "dependents": "label[for='/primaryFilerIsClaimingDependents-<yes|no>']",
+    "claimedElsewhere": "label[for='/primaryFilerIsClaimedOnAnotherReturn-<yes|no>']",
     "next": "a[href*='/income']"
   }
 }
