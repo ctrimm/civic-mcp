@@ -11,13 +11,12 @@
 
 ## Project Status
 
-**Pre-alpha.** The MCP server, SDK, CLI, and test harness build and run. One
-adapter is verified against its live government site: `gov.ssa.retirement`
-passed all 12 live tests (benefit estimator, life expectancy calculator,
-office locator, application handoff) in CI on 2026-06-10
-([evidence](https://github.com/ctrimm/civic-mcp/actions/runs/27268888303)).
-All other adapters have **unverified selectors** — treat them as starting points,
-not finished integrations. Verification runs via the
+**Pre-alpha.** The MCP server, SDK, CLI, and test harness build and run.
+**Six adapters are verified against their live government sites** — SSA,
+Medicare, IRS, GetCalFresh, BenefitsCal, and the StudentAid handoff — with
+19 live tests passing in CI on 2026-06-10 ([evidence](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)). The remaining
+adapters (Colorado, Michigan, Texas) still have **unverified selectors**.
+Verification runs via the
 [verify-live workflow](.github/workflows/verify-live.yml). An experimental Chrome
 extension also lives in this repo — see
 [Experimental: Chrome extension](#experimental-chrome-extension--webmcp).
@@ -119,8 +118,8 @@ verified against the live site via the
 
 | Adapter | State | Programs | Status |
 |---------|-------|----------|--------|
-| [`gov.california.benefitscal`](adapters/gov.california.benefitscal) | California | CalFresh, CalWORKs, Medi-Cal (official portal) | ✅ Entry points live-verified 2026-06-10 |
-| [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh info (site no longer hosts applications — routes to BenefitsCal) | ✅ Live-verified 2026-06-10 |
+| [`gov.california.benefitscal`](adapters/gov.california.benefitscal) | California | CalFresh, CalWORKs, Medi-Cal (official portal) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)) |
+| [`gov.california.getcalfresh`](adapters/gov.california.getcalfresh) | California | CalFresh info (site no longer hosts applications — routes to BenefitsCal) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)) |
 | [`gov.colorado.peak`](adapters/gov.colorado.peak) | Colorado | SNAP, Medicaid, Colorado Works, CHP+ | 🧪 Community (selectors unverified) |
 | [`gov.michigan.bridges`](adapters/gov.michigan.bridges) | Michigan | SNAP, Medicaid, Cash | 🧪 Community (selectors unverified) |
 | [`gov.texas.yourtexasbenefits`](adapters/gov.texas.yourtexasbenefits) | Texas | SNAP, TANF, Medicaid, CHIP | 🧪 Community (selectors unverified) |
@@ -130,8 +129,8 @@ verified against the live site via the
 | Adapter | Agency | Services | Status |
 |---------|--------|----------|--------|
 | [`gov.ssa.retirement`](adapters/gov.ssa.retirement) | Social Security Administration | Benefit estimates, life expectancy, office locator, application handoff | ✅ Live-verified 2026-06-10, 12/12 tests ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27268888303)) |
-| [`gov.medicare.eligibility`](adapters/gov.medicare.eligibility) | Medicare (CMS) | Eligibility & premium calculator | ✅ Selectors from live HTML 2026-06-10 |
-| [`gov.irs.withholding`](adapters/gov.irs.withholding) | IRS | Tax Withholding Estimator (About-you step + guided continuation) | ✅ Selectors from live HTML 2026-06-10 |
+| [`gov.medicare.eligibility`](adapters/gov.medicare.eligibility) | Medicare (CMS) | Eligibility & premium calculator | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)) |
+| [`gov.irs.withholding`](adapters/gov.irs.withholding) | IRS | Tax Withholding Estimator (About-you step + guided continuation) | ✅ Live-verified 2026-06-10 ([CI run](https://github.com/ctrimm/civic-mcp/actions/runs/27270567347)) |
 | [`gov.studentaid.estimator`](adapters/gov.studentaid.estimator) | Dept. of Education | Federal Student Aid Estimator (human handoff) | 🤝 Handoff-only — studentaid.gov blocks datacenter IPs |
 
 **[Request an adapter →](https://github.com/ctrimm/civic-mcp/issues)**
