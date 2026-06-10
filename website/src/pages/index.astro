@@ -1,0 +1,528 @@
+---
+import Base from '../layouts/Base.astro';
+import registry from '../../../registry/registry.json';
+
+const { plugins, categories } = registry;
+
+// Only show categories that have adapters
+const activeCategories = categories.filter((c) => c.count > 0);
+---
+
+<Base>
+  <!-- ── Hero ───────────────────────────────────────────────────── -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-brand">
+        <span class="pill">civic-mcp</span>
+        <h1>Adapter Marketplace</h1>
+      </div>
+      <p class="hero-tagline">
+        Open-source AI tools for government services, built on the
+        <a href="https://developer.chrome.com/docs/extensions/reference/api/aiLanguageModelFactory" target="_blank" rel="noopener">WebMCP</a>
+        standard.
+      </p>
+    </div>
+  </header>
+
+  <!-- ── Controls ───────────────────────────────────────────────── -->
+  <div class="controls-bar">
+    <div class="container controls-inner">
+      <label class="search-wrap" for="search">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          id="search"
+          type="search"
+          placeholder="Search by name, state, or program…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </label>
+
+      <div class="filter-row">
+        <div class="category-tabs" role="group" aria-label="Filter by category">
+          <button class="tab-btn active" data-category="all">All</button>
+          {activeCategories.map((cat) => (
+            <button class="tab-btn" data-category={cat.id}>{cat.name}</button>
+          ))}
+        </div>
+
+        <div class="trust-toggles">
+          <label class="toggle-label">
+            <input type="checkbox" id="show-verified" checked />
+            <span class="trust-badge trust-verified">✓ Verified</span>
+          </label>
+          <label class="toggle-label">
+            <input type="checkbox" id="show-community" checked />
+            <span class="trust-badge trust-community">Community</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main content ───────────────────────────────────────────── -->
+  <main class="container main-content">
+    <p class="result-count" id="result-count">
+      <span id="count-num">{plugins.length}</span> adapter{plugins.length !== 1 ? 's' : ''}
+    </p>
+
+    <div class="plugin-grid" id="plugin-grid">
+      {plugins.map((plugin) => (
+        <article
+          class="plugin-card"
+          data-category={plugin.category}
+          data-trust={plugin.trustLevel}
+          data-search={`${plugin.name} ${plugin.state ?? ''} ${plugin.id} ${plugin.description} ${plugin.tags.join(' ')}`.toLowerCase()}
+        >
+          <!-- Card header -->
+          <div class="card-top">
+            <div class="card-title-row">
+              <h2 class="card-name">{plugin.name}</h2>
+              <span class={`trust-badge trust-${plugin.trustLevel}`}>
+                {plugin.trustLevel === 'verified' ? '✓ Verified' : 'Community'}
+              </span>
+            </div>
+            <div class="card-meta">
+              {plugin.state && <span class="state-pill">{plugin.state}</span>}
+              <code class="adapter-id">{plugin.id}</code>
+              <span class="version">v{plugin.latestVersion}</span>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <p class="card-desc">{plugin.description}</p>
+
+          <!-- Tags -->
+          <div class="card-tags">
+            {plugin.tags.slice(0, 5).map((tag) => (
+              <span class="tag">{tag}</span>
+            ))}
+          </div>
+
+          <!-- Footer links -->
+          <div class="card-footer">
+            <a
+              href={plugin.manifestUrl}
+              target="_blank"
+              rel="noopener"
+              class="btn btn-ghost"
+            >
+              Manifest ↗
+            </a>
+            <a
+              href={`https://github.com/civic-mcp/civic-mcp/tree/main/adapters/${plugin.id}`}
+              target="_blank"
+              rel="noopener"
+              class="btn btn-primary"
+            >
+              View on GitHub
+            </a>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <!-- Empty state -->
+    <div id="no-results" class="no-results" hidden>
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <p>No adapters match your search.</p>
+      <button id="clear-btn" class="btn btn-ghost">Clear filters</button>
+    </div>
+  </main>
+</Base>
+
+<!-- ── Filtering logic (vanilla JS, no framework needed) ──────── -->
+<script>
+  const searchInput  = document.getElementById('search') as HTMLInputElement;
+  const tabBtns      = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
+  const showVerified = document.getElementById('show-verified') as HTMLInputElement;
+  const showCommunity = document.getElementById('show-community') as HTMLInputElement;
+  const cards        = document.querySelectorAll<HTMLElement>('.plugin-card');
+  const countNum     = document.getElementById('count-num')!;
+  const noResults    = document.getElementById('no-results')!;
+  const clearBtn     = document.getElementById('clear-btn')!;
+
+  let activeCategory = 'all';
+
+  function applyFilters() {
+    const query = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+
+    cards.forEach((card) => {
+      const matchCat =
+        activeCategory === 'all' || card.dataset.category === activeCategory;
+
+      const matchSearch =
+        !query || (card.dataset.search ?? '').includes(query);
+
+      const trust = card.dataset.trust ?? '';
+      const matchTrust =
+        (trust === 'verified' && showVerified.checked) ||
+        (trust === 'community' && showCommunity.checked) ||
+        (trust !== 'verified' && trust !== 'community');
+
+      const show = matchCat && matchSearch && matchTrust;
+      card.hidden = !show;
+      if (show) visible++;
+    });
+
+    countNum.textContent = String(visible);
+    noResults.hidden = visible > 0;
+  }
+
+  // Search
+  searchInput.addEventListener('input', applyFilters);
+
+  // Category tabs
+  tabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCategory = btn.dataset.category ?? 'all';
+      applyFilters();
+    });
+  });
+
+  // Trust toggles
+  showVerified.addEventListener('change', applyFilters);
+  showCommunity.addEventListener('change', applyFilters);
+
+  // Clear
+  clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    activeCategory = 'all';
+    tabBtns.forEach((b) => b.classList.remove('active'));
+    tabBtns[0]?.classList.add('active');
+    showVerified.checked = true;
+    showCommunity.checked = true;
+    applyFilters();
+  });
+</script>
+
+<style>
+  /* ── Hero ─────────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, var(--cyan-light) 0%, #fff 60%);
+    border-bottom: 1px solid var(--cyan-border);
+    padding: 3rem 0 2.5rem;
+  }
+
+  .hero-brand {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: .75rem;
+  }
+
+  .hero-brand h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -.02em;
+  }
+
+  .hero-tagline {
+    font-size: 1rem;
+    color: var(--text-muted);
+    max-width: 560px;
+  }
+
+  .hero-tagline a { color: var(--cyan-dark); }
+
+  /* ── Controls bar ─────────────────────────────────────── */
+  .controls-bar {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .controls-inner {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+  }
+
+  /* Search */
+  .search-wrap {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: .5rem .75rem;
+    background: var(--gray-50);
+    transition: border-color .15s;
+  }
+
+  .search-wrap:focus-within {
+    border-color: var(--cyan);
+    background: #fff;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan) 15%, transparent);
+  }
+
+  .search-icon { color: var(--gray-400); flex-shrink: 0; }
+
+  #search {
+    border: none;
+    background: none;
+    outline: none;
+    font-size: .9375rem;
+    width: 100%;
+    color: var(--text);
+  }
+
+  #search::placeholder { color: var(--gray-400); }
+
+  /* Filter row */
+  .filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+
+  .category-tabs {
+    display: flex;
+    gap: .25rem;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    font-size: .8125rem;
+    font-weight: 500;
+    padding: .3rem .75rem;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover { border-color: var(--cyan); color: var(--cyan-dark); }
+
+  .tab-btn.active {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    color: #000;
+    font-weight: 600;
+  }
+
+  /* Trust toggles */
+  .trust-toggles {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+  }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    cursor: pointer;
+    font-size: .8125rem;
+  }
+
+  .toggle-label input[type="checkbox"] {
+    accent-color: var(--cyan);
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Trust badges (used in toggles + cards) */
+  .trust-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: .7rem;
+    font-weight: 600;
+    padding: .2em .55em;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    letter-spacing: .02em;
+  }
+
+  .trust-verified  { background: var(--green-light); color: var(--green); }
+  .trust-community { background: var(--gray-100);    color: var(--gray-700); }
+  .trust-official  { background: #ede9fe;             color: #5b21b6; }
+
+  /* ── Main content ─────────────────────────────────────── */
+  .main-content { padding: 2rem 1.25rem 4rem; flex: 1; }
+
+  .result-count {
+    font-size: .875rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  /* ── Plugin grid ──────────────────────────────────────── */
+  .plugin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+
+  /* ── Plugin card ──────────────────────────────────────── */
+  .plugin-card {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: #fff;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: .875rem;
+    transition: box-shadow .2s, border-color .2s, transform .15s;
+  }
+
+  .plugin-card:hover {
+    border-color: var(--cyan-border);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .card-top { display: flex; flex-direction: column; gap: .4rem; }
+
+  .card-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .5rem;
+  }
+
+  .card-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    line-height: 1.3;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex-wrap: wrap;
+  }
+
+  .state-pill {
+    font-size: .7rem;
+    font-weight: 700;
+    background: var(--cyan-light);
+    color: var(--cyan-dark);
+    border: 1px solid var(--cyan-border);
+    padding: .15em .5em;
+    border-radius: var(--radius-sm);
+    letter-spacing: .04em;
+  }
+
+  .adapter-id {
+    font-size: .7rem;
+    color: var(--gray-400);
+    font-family: ui-monospace, 'Cascadia Code', monospace;
+  }
+
+  .version {
+    font-size: .75rem;
+    color: var(--gray-400);
+  }
+
+  /* Description */
+  .card-desc {
+    font-size: .875rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    flex: 1;
+  }
+
+  /* Tags */
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+  }
+
+  .tag {
+    font-size: .7rem;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    padding: .2em .55em;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+  }
+
+  /* Card footer */
+  .card-footer {
+    display: flex;
+    gap: .5rem;
+    margin-top: .25rem;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8125rem;
+    font-weight: 500;
+    padding: .45rem .875rem;
+    border-radius: var(--radius);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all .15s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    color: #000;
+    flex: 1;
+  }
+
+  .btn-primary:hover {
+    background: var(--cyan-dark);
+    border-color: var(--cyan-dark);
+    text-decoration: none;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text-muted);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--gray-400);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  /* ── Empty state ──────────────────────────────────────── */
+  .no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    padding: 4rem 1rem;
+    color: var(--gray-400);
+    text-align: center;
+  }
+
+  .no-results p { font-size: .9375rem; }
+
+  /* ── Responsive ───────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .hero-brand h1 { font-size: 1.375rem; }
+    .plugin-grid { grid-template-columns: 1fr; }
+    .filter-row { flex-direction: column; align-items: flex-start; }
+  }
+</style>

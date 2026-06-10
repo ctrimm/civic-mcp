@@ -1,0 +1,35 @@
+{
+  "id": "gov.ssa.retirement",
+  "name": "Social Security Retirement Benefits",
+  "version": "0.1.0",
+  "author": "Nava PBC",
+  "authorUrl": "https://navapbc.com",
+  "description": "Estimate monthly Social Security retirement benefits using the SSA Quick Calculator, and begin a retirement benefits application on SSA.gov. The application flow requires a human to solve a reCAPTCHA before submission.",
+  "homepage": "https://www.ssa.gov/benefits/retirement/",
+  "repository": "https://github.com/civic-mcp/civic-mcp",
+  "license": "MIT",
+  "domains": [
+    "www.ssa.gov",
+    "ssa.gov",
+    "secure.ssa.gov"
+  ],
+  "tools": [
+    {
+      "name": "estimate_retirement_benefit",
+      "securityLevel": "read_only",
+      "category": "eligibility"
+    },
+    {
+      "name": "start_retirement_application",
+      "securityLevel": "write",
+      "category": "application"
+    }
+  ],
+  "permissions": {
+    "required": ["read:forms", "write:forms", "navigate", "human-in-the-loop"],
+    "optional": ["storage:local", "notifications"]
+  },
+  "trustLevel": "verified",
+  "verified": true,
+  "minCoreVersion": "0.1.0"
+}

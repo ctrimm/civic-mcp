@@ -1,0 +1,25 @@
+{
+  "name": "@civic-mcp/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server bridge — exposes civic-mcp adapters as tools to Claude Desktop, Cursor, and any MCP-compatible AI client over stdio or HTTP+SSE",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "bin": {
+    "civic-mcp-server": "./bin/civic-mcp-server.js"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "dev": "tsx --watch src/index.ts"
+  },
+  "dependencies": {
+    "@civic-mcp/sdk": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "playwright": "^1.41.0",
+    "tsx": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

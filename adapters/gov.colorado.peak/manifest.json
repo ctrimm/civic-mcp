@@ -1,0 +1,47 @@
+{
+  "id": "gov.colorado.peak",
+  "name": "Colorado PEAK Benefits",
+  "version": "0.1.0",
+  "author": "Nava PBC",
+  "authorUrl": "https://navapbc.com",
+  "description": "WebMCP tools for Colorado SNAP, Medicaid, Colorado Works, and CHP+ applications via peak.my.site.com",
+  "homepage": "https://peak.my.site.com",
+  "repository": "https://github.com/civic-mcp/civic-mcp",
+  "license": "MIT",
+  "domains": [
+    "peak.my.site.com",
+    "colorado.gov"
+  ],
+  "tools": [
+    {
+      "name": "check_program_eligibility",
+      "securityLevel": "read_only",
+      "category": "eligibility"
+    },
+    {
+      "name": "start_snap_application",
+      "securityLevel": "write",
+      "category": "application"
+    },
+    {
+      "name": "check_application_status",
+      "securityLevel": "read_only",
+      "category": "status"
+    },
+    {
+      "name": "get_peak_page_info",
+      "securityLevel": "read_only",
+      "category": "info"
+    }
+  ],
+  "permissions": {
+    "required": ["read:forms", "write:forms", "navigate"],
+    "optional": ["storage:local", "notifications"]
+  },
+  "trustLevel": "verified",
+  "verified": true,
+  "officialPartner": "Colorado Department of Human Services",
+  "category": "state_benefits",
+  "tags": ["SNAP", "Medicaid", "Colorado Works", "CHP+", "Colorado"],
+  "state": "CO"
+}

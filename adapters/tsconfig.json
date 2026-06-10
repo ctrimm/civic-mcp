@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@civic-mcp/sdk": ["../packages/sdk/src/index.ts"],
+      "@civic-mcp/testing": ["../packages/testing/src/index.ts"]
+    }
+  },
+  "include": ["**/*.ts"]
+}
