@@ -34,7 +34,7 @@ try {
   const [url, clickDirective] = spec.split('::click=');
   try {
   const response = await page.goto(url, { waitUntil: 'load', timeout: 60_000 });
-  await page.waitForTimeout(3_500); // allow SPA hydration
+  await page.waitForTimeout(6_000); // allow SPA hydration (Salesforce LWC is slow)
 
   console.log(`===== BEGIN FORM DUMP: ${spec} =====`);
   console.log(`HTTP ${response?.status()} — final URL: ${page.url()}`);
