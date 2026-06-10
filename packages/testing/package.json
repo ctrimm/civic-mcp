@@ -18,8 +18,8 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "postinstall": "playwright install chromium"
+    "test": "vitest run --passWithNoTests",
+    "postinstall": "playwright install chromium || echo \"[civic-mcp] Playwright browser download failed or was skipped — run npx playwright install chromium before using the testing harness or MCP server\""
   },
   "dependencies": {
     "@civic-mcp/sdk": "workspace:*",

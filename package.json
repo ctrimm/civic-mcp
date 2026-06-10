@@ -4,13 +4,13 @@
   "description": "WebMCP abstraction layer for government websites — install adapters for any state or federal service and let AI agents navigate forms, check eligibility, and submit applications on behalf of citizens.",
   "author": "civic-mcp contributors",
   "license": "AGPL-3.0-or-later",
-  "homepage": "https://civic-mcp.dev",
+  "homepage": "https://github.com/ctrimm/civic-mcp",
   "repository": {
     "type": "git",
-    "url": "https://github.com/civic-mcp/civic-mcp.git"
+    "url": "https://github.com/ctrimm/civic-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/civic-mcp/civic-mcp/issues"
+    "url": "https://github.com/ctrimm/civic-mcp/issues"
   },
   "keywords": [
     "webmcp",

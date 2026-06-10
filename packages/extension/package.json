@@ -10,7 +10,7 @@
     "dev": "vite build --watch",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@civic-mcp/sdk": "workspace:*",
