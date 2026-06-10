@@ -86,6 +86,11 @@ docs/.vitepress/dist/
 docs/.vitepress/cache/
 docs/node_modules/
 
+# Astro website artifacts
+website/.astro/
+website/dist/
+website/node_modules/
+
 # Benchmark results
 benchmarks/results/
 
